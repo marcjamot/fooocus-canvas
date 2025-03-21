@@ -5,7 +5,6 @@
 
 	/**
 	 * TODO:
-	 * - opacity background image
 	 * - render generated images to background canvas
 	 * - include image data for generation
 	 * - add eraser to remove image data
@@ -45,7 +44,7 @@
 
 	onMount(async () => {
 		app = new Application();
-		await app.init({ background: '#000000', resizeTo: main });
+		await app.init({ backgroundAlpha: 0, resizeTo: main });
 
 		selectionGraphics = new Graphics();
 		app.stage.addChild(selectionGraphics);
@@ -301,6 +300,86 @@
 		width: 100dvw;
 		height: 100dvh;
 		overflow: hidden;
+
+		background:
+			-webkit-linear-gradient(
+				45deg,
+				rgba(0, 0, 0, 0.0980392) 25%,
+				transparent 25%,
+				transparent 75%,
+				rgba(0, 0, 0, 0.0980392) 75%,
+				rgba(0, 0, 0, 0.0980392) 0
+			),
+			-webkit-linear-gradient(
+					45deg,
+					rgba(0, 0, 0, 0.0980392) 25%,
+					transparent 25%,
+					transparent 75%,
+					rgba(0, 0, 0, 0.0980392) 75%,
+					rgba(0, 0, 0, 0.0980392) 0
+				),
+			white;
+		background:
+			-moz-linear-gradient(
+				45deg,
+				rgba(0, 0, 0, 0.0980392) 25%,
+				transparent 25%,
+				transparent 75%,
+				rgba(0, 0, 0, 0.0980392) 75%,
+				rgba(0, 0, 0, 0.0980392) 0
+			),
+			-moz-linear-gradient(
+					45deg,
+					rgba(0, 0, 0, 0.0980392) 25%,
+					transparent 25%,
+					transparent 75%,
+					rgba(0, 0, 0, 0.0980392) 75%,
+					rgba(0, 0, 0, 0.0980392) 0
+				),
+			white;
+		background:
+			linear-gradient(
+				45deg,
+				rgba(0, 0, 0, 0.0980392) 25%,
+				transparent 25%,
+				transparent 75%,
+				rgba(0, 0, 0, 0.0980392) 75%,
+				rgba(0, 0, 0, 0.0980392) 0
+			),
+			linear-gradient(
+				45deg,
+				rgba(0, 0, 0, 0.0980392) 25%,
+				transparent 25%,
+				transparent 75%,
+				rgba(0, 0, 0, 0.0980392) 75%,
+				rgba(0, 0, 0, 0.0980392) 0
+			),
+			white;
+		background-repeat: repeat, repeat;
+		background-position:
+			0px 0,
+			5px 5px;
+		-webkit-transform-origin: 0 0 0;
+		transform-origin: 0 0 0;
+		-webkit-background-origin: padding-box, padding-box;
+		background-origin: padding-box, padding-box;
+		-webkit-background-clip: border-box, border-box;
+		background-clip: border-box, border-box;
+		-webkit-background-size:
+			10px 10px,
+			10px 10px;
+		background-size:
+			10px 10px,
+			10px 10px;
+		-webkit-box-shadow: none;
+		box-shadow: none;
+		text-shadow: none;
+		-webkit-transition: none;
+		-moz-transition: none;
+		-o-transition: none;
+		transition: none;
+		-webkit-transform: scaleX(1) scaleY(1) scaleZ(1);
+		transform: scaleX(1) scaleY(1) scaleZ(1);
 	}
 
 	.menu {
