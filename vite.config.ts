@@ -8,9 +8,9 @@ export default defineConfig({
 			'/fooocus': {
 				target: 'http://192.168.1.114:7865/',
 				changeOrigin: true,
-				rewrite: path => path.replace(/^\/fooocus/, ''),
-				ws: true,
+				rewrite: (path) => path.replace(/^\/fooocus/, ''),
+				ws: true
 			}
-		},
-	},
+		}
+	}
 });

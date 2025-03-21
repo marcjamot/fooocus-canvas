@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { Client } from '@gradio/client';
-	import { Application, Assets, Graphics, Sprite, Texture } from 'pixi.js';
-	import { onMount } from 'svelte';
+	import { Application, Graphics } from 'pixi.js';
+	import { onMount, type ComponentProps } from 'svelte';
+	import Generation from './Generation.svelte';
 
 	/**
 	 * TODO:
@@ -31,13 +31,18 @@
 		| undefined;
 	let selectionGraphics: Graphics;
 	let text = '';
+	let generations: Record<string, ComponentProps<typeof Generation>> = {};
 
 	$: if (selection?.type === 'progress') {
 		const { sx, sy, ex, ey } = selection;
+		const width = Math.abs(sx - ex);
+		const height = Math.abs(sy - ey);
+
+		let x = sx < ex ? sx : sx - width;
+		let y = sy < ey ? sy : sy - height;
+
 		selectionGraphics.clear();
-		selectionGraphics
-			.rect(Math.min(sx, ex), Math.min(sy, ey), Math.abs(sx - ex), Math.abs(sy - ey))
-			.fill('#ff000044');
+		selectionGraphics.rect(x, y, width, height).fill('#ff000044');
 	} else if (selectionGraphics) {
 		selectionGraphics.clear();
 	}
@@ -59,212 +64,28 @@
 	async function generate() {
 		if (selection?.type !== 'progress') return;
 		const { sx, sy, ex, ey } = selection;
+		const id = `${Math.random() * 1000000}`;
 
-		const fooocus = await Client.connect('http://localhost:5173/fooocus');
-
-		const r67 = await fooocus.predict(67, [
-			false,
-			text,
-			'',
-			['Fooocus V2', 'Fooocus Enhance', 'Fooocus Sharp'],
-			'Extreme Speed',
-			'704×1408 <span style="color: grey;"> ∣ 1:2</span>',
-			1,
-			'png',
-			`${Math.floor(Math.random() * (1024 * 1024 * 1024 - 1))}`,
-			false,
-			2,
-			4,
-			'juggernautXL_v8Rundiffusion.safetensors',
-			'None',
-			0.5,
-			true,
-			'sd_xl_offset_example-lora_1.0.safetensors',
-			0.1,
-			true,
-			'None',
-			1,
-			true,
-			'None',
-			1,
-			true,
-			'None',
-			1,
-			true,
-			'None',
-			1,
-			false,
-			'uov',
-			'Disabled',
-			null,
-			[],
-			null,
-			'',
-			null,
-			false,
-			false,
-			false,
-			false,
-			1.5,
-			0.8,
-			0.3,
-			7,
-			2,
-			'dpmpp_2m_sde_gpu',
-			'karras',
-			'Default (model)',
-			-1,
-			-1,
-			-1,
-			-1,
-			-1,
-			-1,
-			false,
-			false,
-			false,
-			false,
-			64,
-			128,
-			'joint',
-			0.25,
-			false,
-			1.01,
-			1.02,
-			0.99,
-			0.95,
-			false,
-			false,
-			'v2.6',
-			1,
-			0.618,
-			false,
-			false,
-			0,
-			false,
-			'fooocus',
-			null,
-			0.5,
-			0.6,
-			'ImagePrompt',
-			null,
-			0.5,
-			0.6,
-			'ImagePrompt',
-			null,
-			0.5,
-			0.6,
-			'ImagePrompt',
-			null,
-			0.5,
-			0.6,
-			'ImagePrompt',
-			false,
-			0,
-			false,
-			null,
-			false,
-			'Disabled',
-			'Before First Enhancement',
-			'Original Prompts',
-			false,
-			'',
-			'',
-			'',
-			'sam',
-			'full',
-			'vit_b',
-			0.25,
-			0.3,
-			0,
-			false,
-			'v2.6',
-			1,
-			0.618,
-			0,
-			false,
-			false,
-			'',
-			'',
-			'',
-			'sam',
-			'full',
-			'vit_b',
-			0.25,
-			0.3,
-			0,
-			false,
-			'v2.6',
-			1,
-			0.618,
-			0,
-			false,
-			false,
-			'',
-			'',
-			'',
-			'sam',
-			'full',
-			'vit_b',
-			0.25,
-			0.3,
-			0,
-			false,
-			'v2.6',
-			1,
-			0.618,
-			0,
-			false
-		]);
-
-		console.log('Result 67:', r67);
-
-		const r68 = fooocus.submit(68, []);
-
-		const sprite = new Sprite({
-			position: {
-				x: Math.min(sx, ex),
-				y: Math.min(sy, ey)
-			},
+		const generation: ComponentProps<typeof Generation> = {
+			app: app,
+			text: text,
 			width: Math.abs(sx - ex),
-			height: Math.abs(sy - ey)
-		});
-		app.stage.addChild(sprite);
-
-		let i = Math.floor(Math.random() * 1000000);
-		for await (const message of r68) {
-			i += 1;
-			if (message.type !== 'data') continue;
-
-			const data = message.data as [
-				{},
-				{ visible?: boolean; value: string },
-				{},
-				{ visible?: boolean; value: [{ name: string }] }
-			];
-
-			if (data[1].visible && data[1].value) {
-				const url = `step ${i}`;
-				await Assets.load({ alias: url, format: 'png', src: data[1].value });
-				const texture = Texture.from(url);
-				sprite.texture = texture;
-				app.render();
+			height: Math.abs(sy - ey),
+			x: Math.min(sx, ex),
+			y: Math.min(sy, ey),
+			done: () => {
+				delete generations[id];
 			}
-			if (data[3].visible) {
-				const url = `http://localhost:5173/fooocus/file=${data[3].value[0].name}`;
-				await Assets.load(url);
-				const texture = Texture.from(url);
-				sprite.texture = texture;
-				app.render();
-			}
-		}
+		};
+		generations[id] = generation;
 	}
 
 	function onPointerDown(ev: PointerEvent) {
 		dragging = true;
 		selection = {
 			type: 'start',
-			sx: ev.x,
-			sy: ev.y
+			sx: Math.floor(ev.x),
+			sy: Math.floor(ev.y)
 		};
 	}
 
@@ -276,8 +97,8 @@
 			type: 'progress',
 			sx: selection.sx,
 			sy: selection.sy,
-			ex: ev.x,
-			ey: ev.y
+			ex: Math.floor(ev.x),
+			ey: Math.floor(ev.y)
 		};
 	}
 
@@ -292,6 +113,9 @@
 		<button on:click={generate}>Do it</button>
 		<!-- <img src={imgsrc} alt="" width="100px" height="100px" /> -->
 	</div>
+	{#each Object.values(generations) as generation}
+		<Generation {...generation} />
+	{/each}
 </div>
 
 <style>
