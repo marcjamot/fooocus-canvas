@@ -3,6 +3,7 @@
 	import { onMount, type ComponentProps } from 'svelte';
 	import Generation from './Generation.svelte';
 	import { toolState } from '$lib/states.svelte';
+	import { bestResolution } from '$lib/fooocus';
 
 	const { pageAPI }: { pageAPI: PageAPI } = $props();
 
@@ -59,6 +60,7 @@
 		const height = Math.abs(sy - ey);
 		const x = Math.min(sx, ex);
 		const y = Math.min(sy, ey);
+		const resolution = bestResolution(width, height);
 
 		// Keep context from surrounding image if any
 		const imageData = pageAPI.getImageData(x, y, width, height);
@@ -66,12 +68,18 @@
 
 		let inpaint: { image: string; mask: string } | null = null;
 		if (hasData) {
-			const canvas = document.createElement('canvas');
-			canvas.width = width;
-			canvas.height = height;
-			const ctx = canvas.getContext('2d')!;
-			ctx.putImageData(imageData, 0, 0);
-			const image = canvas.toDataURL('image/png');
+			const imageCanvas = document.createElement('canvas');
+			imageCanvas.width = width;
+			imageCanvas.height = height;
+			const imageCtx = imageCanvas.getContext('2d')!;
+			imageCtx.putImageData(imageData, 0, 0);
+
+			const scaledImageCanvas = document.createElement('canvas');
+			scaledImageCanvas.width = resolution.w;
+			scaledImageCanvas.height = resolution.h;
+			const scaledImageCtx = scaledImageCanvas.getContext('2d')!;
+			scaledImageCtx.drawImage(imageCanvas, 0, 0, width, height, 0, 0, resolution.w, resolution.h);
+			const image = scaledImageCanvas.toDataURL('image/png');
 
 			// Mask
 			const maskCanvas = document.createElement('canvas');
@@ -93,7 +101,13 @@
 				}
 			}
 			maskCtx.putImageData(maskData, 0, 0);
-			const mask = maskCanvas.toDataURL('image/png');
+
+			const scaledMaskCanvas = document.createElement('canvas');
+			scaledMaskCanvas.width = resolution.w;
+			scaledMaskCanvas.height = resolution.h;
+			const scaledMaskCtx = scaledMaskCanvas.getContext('2d')!;
+			scaledMaskCtx.drawImage(maskCanvas, 0, 0, width, height, 0, 0, resolution.w, resolution.h);
+			const mask = scaledMaskCanvas.toDataURL('image/png');
 
 			inpaint = {
 				image: image,

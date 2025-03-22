@@ -37,7 +37,7 @@ const RESOLUTIONS: Resolution[] = [
 	{ w: 1728, h: 576, aW: 3, aH: 1, aspect: 3 / 1 }
 ] as const;
 
-function bestResolution(width: number, height: number): Resolution {
+export function bestResolution(width: number, height: number): Resolution {
 	const selectionAspect = width / height;
 
 	let bestResolution = RESOLUTIONS[0];
