@@ -47,6 +47,7 @@
 
 <style>
 	div {
+		pointer-events: none;
 		position: absolute;
 		backdrop-filter: blur(10px);
 		background-color: #ffffff33;

@@ -1,13 +1,19 @@
 <script lang="ts">
-	import type { PageAPI, Selection, Tool } from '$lib/models';
+	import type { PageAPI, Tool } from '$lib/models';
 	import GenerateAction from '$lib/actions/GenerateAction.svelte';
 	import { toolState } from '$lib/states.svelte';
+	import EraseAction from '$lib/actions/EraseAction.svelte';
 
 	let canvas: HTMLCanvasElement;
 	let width: number = $state(0);
 	let height: number = $state(0);
 
 	const pageAPI = {
+		clearRect: (x, y, width, height) => {
+			const ctx = canvas.getContext('2d')!;
+			ctx.clearRect(x, y, width, height);
+		},
+
 		drawImage: (img, x, y, width, height) => {
 			const ctx = canvas.getContext('2d')!;
 			ctx.drawImage(img, x, y, width, height);
@@ -37,7 +43,8 @@
 
 <div class="main" bind:clientWidth={width} bind:clientHeight={height}>
 	<canvas bind:this={canvas}> </canvas>
-
+	
+	<EraseAction {pageAPI} />
 	<GenerateAction {pageAPI} />
 
 	<div class="tools">
@@ -56,8 +63,6 @@
 			</div>
 		{/each}
 	</div>
-
-	
 </div>
 
 <style>

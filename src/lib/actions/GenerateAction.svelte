@@ -21,8 +21,7 @@
 			...toolState.tools,
 			{
 				icon: '/icons/magic.svg',
-				name: NAME,
-				order: 99
+				name: NAME
 			}
 		];
 	});

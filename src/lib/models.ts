@@ -1,4 +1,5 @@
 export interface PageAPI {
+    clearRect(x: number, y: number, width: number, height: number): void;
     drawImage(img: HTMLImageElement, x: number, y: number, width: number, height: number): void;
     getImageData(x: number, y: number, width: number, height: number): ImageData;
 }
@@ -21,5 +22,4 @@ export type Selection =
 export interface Tool {
     icon: string;
     name: string;
-    order: number;
 }
