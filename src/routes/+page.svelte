@@ -5,16 +5,26 @@
 	import EraseAction from '$lib/actions/EraseAction.svelte';
 
 	let canvas: HTMLCanvasElement;
+	let history: HTMLCanvasElement[] = [];
+	let future: HTMLCanvasElement[] = [];
+	let lastAction: 'clear' | 'draw' | undefined;
 	let width: number = $state(0);
 	let height: number = $state(0);
 
 	const pageAPI = {
 		clearRect: (x, y, width, height) => {
+			if (lastAction !== 'clear') {
+				saveHistory();
+			}
+
+			lastAction = 'clear';
 			const ctx = canvas.getContext('2d')!;
 			ctx.clearRect(x, y, width, height);
 		},
 
 		drawImage: (img, x, y, width, height) => {
+			saveHistory();
+			lastAction = 'draw';
 			const ctx = canvas.getContext('2d')!;
 			ctx.drawImage(img, x, y, width, height);
 		},
@@ -32,6 +42,67 @@
 		}
 	});
 
+	function onKeyDown(event: KeyboardEvent) {
+		if ((event.metaKey || event.ctrlKey) && event.shiftKey && event.key === 'z') {
+			event.preventDefault();
+			restoreFuture();
+		} else if ((event.metaKey || event.ctrlKey) && event.key === 'z') {
+			event.preventDefault();
+			restoreHistory();
+		}
+	}
+
+	function restoreFuture() {
+		const futureCanvas = future.shift();
+		if (!futureCanvas) return;
+
+		lastAction = undefined;
+
+		const historyCanvas = document.createElement('canvas');
+		historyCanvas.width = canvas.width;
+		historyCanvas.height = canvas.height;
+		const historyCtx = historyCanvas.getContext('2d')!;
+		historyCtx.drawImage(canvas, 0, 0);
+		history.push(historyCanvas);
+
+		const ctx = canvas.getContext('2d')!;
+		ctx.clearRect(0, 0, canvas.width, canvas.height);
+		ctx.drawImage(futureCanvas, 0, 0);
+	}
+
+	function restoreHistory() {
+		const historyCanvas = history.pop();
+		if (!historyCanvas) return;
+
+		lastAction = undefined;
+
+		const futureCanvas = document.createElement('canvas');
+		futureCanvas.width = canvas.width;
+		futureCanvas.height = canvas.height;
+		const futureCtx = futureCanvas.getContext('2d')!;
+		futureCtx.drawImage(canvas, 0, 0);
+		future.unshift(futureCanvas);
+
+		const ctx = canvas.getContext('2d')!;
+		ctx.clearRect(0, 0, canvas.width, canvas.height);
+		ctx.drawImage(historyCanvas, 0, 0);
+	}
+
+	function saveHistory() {
+		future = [];
+
+		const historyCanvas = document.createElement('canvas');
+		historyCanvas.width = canvas.width;
+		historyCanvas.height = canvas.height;
+		const historyCtx = historyCanvas.getContext('2d')!;
+		historyCtx.drawImage(canvas, 0, 0);
+		history.push(historyCanvas);
+
+		if (history.length > 10) {
+			history.shift();
+		}
+	}
+
 	function selectTool(tool: Tool) {
 		if (toolState.active === tool.name) {
 			toolState.active = undefined;
@@ -43,7 +114,7 @@
 
 <div class="main" bind:clientWidth={width} bind:clientHeight={height}>
 	<canvas bind:this={canvas}> </canvas>
-	
+
 	<EraseAction {pageAPI} />
 	<GenerateAction {pageAPI} />
 
@@ -64,6 +135,8 @@
 		{/each}
 	</div>
 </div>
+
+<svelte:window onkeydown={onKeyDown} />
 
 <style>
 	.main {
