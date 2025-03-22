@@ -1,38 +1,31 @@
-# sv
+# Fooocus Canvas
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+Create any image you want using an iterative approach. The web-based canvas combines the power and simplicity of [Fooocus](https://github.com/lllyasviel/Fooocus) with a set of common as well as more powerful image editing tools.
 
-## Creating a project
+## Image editing tools
 
-If you're seeing this, you've probably already done this step. Congrats!
+- Generate image through [Fooocus](https://github.com/lllyasviel/Fooocus). This allows you to create content anywhere on the canvas and respects any image content already there (inpainting).
+- Standard image editing tools such as pen, brush, eraser, filling can.
+- Powerful selection tools to more eaily replace content.
+- Layers with common functionality such as merge and hide.
+- Basic filters such as blur and sharpen.
+- [Fooocus](https://github.com/lllyasviel/Fooocus) based filters such as upscale, change color, change style.
+- Upload or drop your own images on the canvas.
 
-```bash
-# create a new project in the current directory
-npx sv create
+## Requirements
 
-# create a new project in my-app
-npx sv create my-app
-```
+- Install Node.
+- Instance running with [Fooocus](https://github.com/lllyasviel/Fooocus) accessible through the network.
 
-## Developing
+## Running it locally
 
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+1. Install packages through `npm i`
+2. Copy `.env.example` to `.env` and update the values
+3. Run `npm run dev`
+4. Visit http://localhost:5173
 
-```bash
-npm run dev
+Alternatively build the production image with Docker and run, remember to set the environment variables listed in `.env.example`.
 
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
-```
+## License
 
-## Building
-
-To create a production version of your app:
-
-```bash
-npm run build
-```
-
-You can preview the production build with `npm run preview`.
-
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
+GNU General Public License v3.0
