@@ -1,7 +1,7 @@
 <script lang="ts">
-	import Generation from '$lib/actions/Generation.svelte';
-	import type { PageAPI, Selection } from '$lib/models';
+	import type { PageAPI, Selection, Tool } from '$lib/models';
 	import GenerateAction from '$lib/actions/GenerateAction.svelte';
+	import { toolState } from '$lib/states.svelte';
 
 	let canvas: HTMLCanvasElement;
 	let dragging = false;
@@ -53,22 +53,6 @@
 		}
 	});
 
-	function erase() {
-		if (selection?.type !== 'progress') return;
-
-		const { sx, sy, ex, ey } = selection;
-
-		const width = Math.abs(sx - ex);
-		const height = Math.abs(sy - ey);
-		const x = Math.min(sx, ex);
-		const y = Math.min(sy, ey);
-
-		const ctx = canvas.getContext('2d')!;
-		ctx.clearRect(x, y, width, height);
-
-		selection = undefined;
-	}
-
 	function onPointerDown(ev: PointerEvent) {
 		dragging = true;
 		selection = {
@@ -94,6 +78,14 @@
 	function onPointerUp(ev: PointerEvent) {
 		dragging = false;
 	}
+
+	function selectTool(tool: Tool) {
+		if (toolState.active === tool.name) {
+			toolState.active = undefined;
+		} else {
+			toolState.active = tool.name;
+		}
+	}
 </script>
 
 <div class="main" bind:clientWidth={width} bind:clientHeight={height}>
@@ -104,7 +96,26 @@
 		onpointerup={(e) => onPointerUp(e)}
 	>
 	</canvas>
+
 	<GenerateAction {pageAPI} />
+
+	<div class="tools">
+		{#each toolState.tools as tool}
+			<div
+				class="tool"
+				onclick={() => selectTool(tool)}
+				onkeydown={() => selectTool(tool)}
+				role="button"
+				tabindex="0"
+				class:active={toolState.active === tool.name}
+			>
+				<div class="icon">
+					<img src={tool.icon} alt={tool.name} />
+				</div>
+			</div>
+		{/each}
+	</div>
+
 	<div
 		class="selection"
 		class:disabled={selection?.type !== 'progress'}
@@ -203,6 +214,35 @@
 	canvas {
 		width: 100%;
 		height: 100%;
+	}
+
+	.tools {
+		position: absolute;
+		top: 8px;
+		left: 8px;
+		display: flex;
+		align-items: center;
+		gap: 8px;
+	}
+
+	.tool {
+		padding: 8px;
+		border: 1px solid black;
+		border-radius: 8px;
+		background-color: white;
+		box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+		cursor: pointer;
+	}
+
+	.tool.active {
+		background-color: #79c7ff;
+		border: 1px solid #01406d;
+		color: white;
+	}
+
+	.tool .icon {
+		width: 2rem;
+		height: 2rem;
 	}
 
 	.selection {

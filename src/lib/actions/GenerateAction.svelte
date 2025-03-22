@@ -1,13 +1,25 @@
 <script lang="ts">
 	import type { PageAPI } from '$lib/models';
-	import type { ComponentProps } from 'svelte';
+	import { onMount, type ComponentProps } from 'svelte';
 	import Generation from './Generation.svelte';
+	import { toolState } from '$lib/states.svelte';
 
 	const { pageAPI }: { pageAPI: PageAPI } = $props();
 
 	let generations: Record<string, ComponentProps<typeof Generation>> = $state({});
 	let text = $state('A cat with a hat');
 	let working = $state(false);
+
+	onMount(() => {
+		toolState.tools = [
+			...toolState.tools,
+			{
+				icon: '/icons/magic.svg',
+				name: 'Generate Image',
+				order: 99
+			}
+		];
+	});
 
 	async function generate() {
 		const selection = pageAPI.getSelection();
@@ -83,7 +95,7 @@
 	}
 </script>
 
-<div class="action">
+<div class="action" class:hidden={toolState.active !== "Generate Image"}>
 	<input type="text" bind:value={text} />
 	<button onclick={generate} disabled={working}>Generate</button>
 </div>
@@ -97,10 +109,16 @@
 		top: 8px;
 		right: 8px;
 		padding: 16px;
-		border: 1px dashed white;
+		background-color: #000000aa;
+		border: 1px solid black;
+		border-radius: 8px;
 		display: flex;
 		flex-direction: column;
 		align-items: flex-end;
 		gap: 8px;
 	}
+
+    .action.hidden {
+        display: none;
+    }
 </style>

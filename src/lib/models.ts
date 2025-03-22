@@ -19,3 +19,9 @@ export type Selection =
         ey: number;
     }
     | undefined;
+
+export interface Tool {
+    icon: string;
+    name: string;
+    order: number;
+}
