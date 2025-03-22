@@ -6,7 +6,7 @@
 	const { pageAPI }: { pageAPI: PageAPI } = $props();
 
 	const NAME = 'Erase';
-    const SIZE = 80;
+	const SIZE = 80;
 
 	let active = $derived(toolState.active === NAME);
 	let dragging = $state(false);
@@ -30,7 +30,7 @@
 		x = ev.x;
 		y = ev.y;
 
-		pageAPI.clearRect(x - SIZE/2, y - SIZE/2, SIZE, SIZE);
+		pageAPI.clearRect(x - SIZE / 2, y - SIZE / 2, SIZE, SIZE);
 	}
 
 	function onPointerMove(ev: PointerEvent) {
@@ -41,7 +41,7 @@
 
 		if (!dragging) return;
 
-		pageAPI.clearRect(x - SIZE/2, y - SIZE/2, SIZE, SIZE);
+		pageAPI.clearRect(x - SIZE / 2, y - SIZE / 2, SIZE, SIZE);
 	}
 
 	function onPointerUp(ev: PointerEvent) {
@@ -59,7 +59,7 @@
 <div
 	class="eraser"
 	class:display-none={!active || (x === 0 && y === 0)}
-	style="top: {y - SIZE/2}px; left: {x - SIZE/2}px; width: {SIZE}px; height: {SIZE}px;"
+	style="top: {y - SIZE / 2}px; left: {x - SIZE / 2}px; width: {SIZE}px; height: {SIZE}px;"
 ></div>
 
 <style>

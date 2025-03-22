@@ -41,7 +41,7 @@
 	});
 </script>
 
-<div style="width: {width+4}px; height: {height+4}px; left: {x-2}px; top: {y-2}px;">
+<div style="width: {width + 4}px; height: {height + 4}px; left: {x - 2}px; top: {y - 2}px;">
 	<img class:hidden={src === ''} {src} {width} {height} alt="" bind:this={img} />
 </div>
 

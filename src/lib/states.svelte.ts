@@ -1,11 +1,11 @@
-import type { Tool } from "./models";
+import type { Tool } from './models';
 
 export const toolState: {
-    active: string | undefined;
-    tools: Tool[];
+	active: string | undefined;
+	tools: Tool[];
 } = $state({
-    active: undefined,
-    tools: [],
+	active: undefined,
+	tools: []
 });
 
 // $effect(() => {
