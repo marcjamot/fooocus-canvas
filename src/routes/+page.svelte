@@ -1,32 +1,44 @@
 <script lang="ts">
 	import type { PageAPI, Tool } from '$lib/models';
 	import GenerateAction from '$lib/actions/GenerateAction.svelte';
-	import { toolState } from '$lib/states.svelte';
 	import EraseAction from '$lib/actions/EraseAction.svelte';
+	import PaintAction from '$lib/actions/PaintAction.svelte';
+	import { toolState } from '$lib/states.svelte';
 
 	let canvas: HTMLCanvasElement;
 	let history: HTMLCanvasElement[] = [];
 	let future: HTMLCanvasElement[] = [];
-	let lastAction: 'clear' | 'draw' | undefined;
+	let lastAction: 'clearRect' | 'drawImage' | 'drawRect' | undefined;
 	let width: number = $state(0);
 	let height: number = $state(0);
 
 	const pageAPI = {
 		clearRect: (x, y, width, height) => {
-			if (lastAction !== 'clear') {
+			if (lastAction !== 'clearRect') {
 				saveHistory();
 			}
 
-			lastAction = 'clear';
+			lastAction = 'clearRect';
 			const ctx = canvas.getContext('2d')!;
 			ctx.clearRect(x, y, width, height);
 		},
 
 		drawImage: (img, x, y, width, height) => {
 			saveHistory();
-			lastAction = 'draw';
+			lastAction = 'drawImage';
 			const ctx = canvas.getContext('2d')!;
 			ctx.drawImage(img, x, y, width, height);
+		},
+
+		drawRect: (x, y, width, height) => {
+			if (lastAction !== 'drawRect') {
+				saveHistory();
+			}
+
+			lastAction = 'drawRect';
+			const ctx = canvas.getContext('2d')!;
+			ctx.fillStyle = 'black';
+			ctx.fillRect(x, y, width, height);
 		},
 
 		getImageData: (x, y, width, height) => {
@@ -36,9 +48,14 @@
 	} satisfies PageAPI;
 
 	$effect(() => {
-		if (canvas) {
-			canvas.width = width;
-			canvas.height = height;
+		if (canvas && width && height) {
+			(async () => {
+				const bmp = await createImageBitmap(canvas);
+				canvas.width = width;
+				canvas.height = height;
+				const ctx = canvas.getContext('2d')!;
+				ctx.drawImage(bmp, 0, 0, width, height);
+			})();
 		}
 	});
 
@@ -115,6 +132,7 @@
 <div class="main" bind:clientWidth={width} bind:clientHeight={height}>
 	<canvas bind:this={canvas}> </canvas>
 
+	<PaintAction {pageAPI} />
 	<EraseAction {pageAPI} />
 	<GenerateAction {pageAPI} />
 
