@@ -3,7 +3,7 @@
 	import { onMount, type ComponentProps } from 'svelte';
 	import Generation from './Generation.svelte';
 	import { toolState } from '$lib/states.svelte';
-	import { bestResolution } from '$lib/fooocus';
+	import { bestResolution, PerformanceValues, type Performance } from '$lib/fooocus';
 
 	const { pageAPI }: { pageAPI: PageAPI } = $props();
 
@@ -13,6 +13,7 @@
 	let selection = $state<Selection>(undefined);
 	let selectionDiv: HTMLDivElement;
 	let generations: Record<string, ComponentProps<typeof Generation>> = $state({});
+	let performance = $state<Performance>('Extreme Speed');
 	let text = $state('A cat with a hat');
 	let working = $state(false);
 
@@ -121,6 +122,7 @@
 			height: height,
 			x: x,
 			y: y,
+			performance: performance,
 			resolution: resolution,
 			inpaint: inpaint,
 			done: async (data) => {
@@ -187,6 +189,12 @@
 ></div>
 <div class="action" class:display-none={!active}>
 	<input type="text" bind:value={text} />
+	{#each PerformanceValues as value}
+		<label>
+			<input type="radio" {value} bind:group={performance} />
+			{value}
+		</label>
+	{/each}
 	<button onclick={generate} disabled={!canGenerate}>Generate</button>
 	<!-- {#if selection?.type === 'progress'}
 		<p>Width: {Math.abs(selection.sx - selection.ex)}</p>

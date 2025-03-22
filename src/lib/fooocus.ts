@@ -1,5 +1,8 @@
 import { Client } from '@gradio/client';
 
+export const PerformanceValues = ['Extreme Speed', 'Speed', 'Quality'] as const;
+export type Performance = (typeof PerformanceValues)[number];
+
 export interface Resolution {
 	w: number;
 	h: number;
@@ -54,14 +57,14 @@ export function bestResolution(width: number, height: number): Resolution {
 }
 
 export async function* generate(args: {
-	text: string;
-	resolution: Resolution;
 	inpaint: {
 		image: string;
 		mask: string;
 	} | null;
+	performance: Performance;
+	resolution: Resolution;
+	text: string;
 }): AsyncIterable<string> {
-	const performance: 'Quality' | 'Speed' | 'Extreme Speed' = 'Extreme Speed';
 	const resolutionString = `${args.resolution.w}×${args.resolution.h} <span style="color: grey;"> ∣ ${args.resolution.aW}:${args.resolution.aH}</span>`;
 	const styles = [
 		'Fooocus V2',
@@ -78,7 +81,7 @@ export async function* generate(args: {
 		args.text,
 		'',
 		styles,
-		performance,
+		args.performance,
 		resolutionString,
 		1,
 		'png',

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { generate, type Resolution } from '$lib/fooocus';
+	import { generate, type Performance, type Resolution } from '$lib/fooocus';
 	import { onMount } from 'svelte';
 
 	let {
@@ -8,6 +8,7 @@
 		y,
 		width,
 		height,
+		performance,
 		resolution,
 		inpaint,
 		done
@@ -17,6 +18,7 @@
 		y: number;
 		width: number;
 		height: number;
+		performance: Performance;
 		resolution: Resolution;
 		inpaint: {
 			image: string;
@@ -31,9 +33,10 @@
 	onMount(async () => {
 		let lastData: string;
 		const datas = generate({
-			text: text,
+			inpaint: inpaint,
+			performance: performance,
 			resolution: resolution,
-			inpaint: inpaint
+			text: text
 		});
 		for await (const data of datas) {
 			src = data;
