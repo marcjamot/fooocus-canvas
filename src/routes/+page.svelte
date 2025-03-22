@@ -1,20 +1,17 @@
 <script lang="ts">
-	import { Application, Graphics } from 'pixi.js';
 	import { onMount, type ComponentProps } from 'svelte';
 	import Generation from './Generation.svelte';
 
 	/**
 	 * TODO:
-	 * - render generated images to background canvas
 	 * - include image data for generation
 	 * - add eraser to remove image data
 	 * - drag to move?
 	 * - layers?
 	 */
 
-	let app: Application;
+	let canvas: HTMLCanvasElement;
 	let dragging = false;
-	let main: HTMLDivElement;
 	let selection:
 		| {
 				type: 'start';
@@ -29,11 +26,18 @@
 				ey: number;
 		  }
 		| undefined;
-	let selectionGraphics: Graphics;
+	let selectionDiv: HTMLDivElement;
 	let text = '';
 	let generations: Record<string, ComponentProps<typeof Generation>> = {};
+	let width: number;
+	let height: number;
 
-	$: if (selection?.type === 'progress') {
+	$: if (canvas) {
+		canvas.width = width;
+		canvas.height = height;
+	}
+
+	$: if (selectionDiv && selection?.type === 'progress') {
 		const { sx, sy, ex, ey } = selection;
 		const width = Math.abs(sx - ex);
 		const height = Math.abs(sy - ey);
@@ -41,46 +45,44 @@
 		let x = sx < ex ? sx : sx - width;
 		let y = sy < ey ? sy : sy - height;
 
-		selectionGraphics.clear();
-		selectionGraphics.rect(x, y, width, height).fill('#ff000044');
-	} else if (selectionGraphics) {
-		selectionGraphics.clear();
+		selectionDiv.style.top = `${y}px`;
+		selectionDiv.style.left = `${x}px`;
+		selectionDiv.style.width = `${width}px`;
+		selectionDiv.style.height = `${height}px`;
 	}
-
-	onMount(async () => {
-		app = new Application();
-		await app.init({ backgroundAlpha: 0, resizeTo: main });
-
-		selectionGraphics = new Graphics();
-		app.stage.addChild(selectionGraphics);
-
-		app.canvas.addEventListener('pointerdown', onPointerDown);
-		app.canvas.addEventListener('pointerup', onPointerUp);
-		app.canvas.addEventListener('pointermove', onPointerMove);
-
-		main.appendChild(app.canvas);
-	});
 
 	async function generate() {
 		if (selection?.type !== 'progress') return;
+
 		const { sx, sy, ex, ey } = selection;
 		const id = `${Math.random() * 1000000}`;
 
+		const width = Math.abs(sx - ex);
+		const height = Math.abs(sy - ey);
+		const x = Math.min(sx, ex);
+		const y = Math.min(sy, ey);
+
 		const generation: ComponentProps<typeof Generation> = {
-			app: app,
 			text: text,
-			width: Math.abs(sx - ex),
-			height: Math.abs(sy - ey),
-			x: Math.min(sx, ex),
-			y: Math.min(sy, ey),
-			done: () => {
+			width: width,
+			height: height,
+			x: x,
+			y: y,
+			done: (img) => {
+				const ctx = canvas.getContext('2d')!;
+				ctx.drawImage(img, x, y, width, height);
 				delete generations[id];
+				generations = generations;
 			}
 		};
 		generations[id] = generation;
+		generations = generations;
+
+		selection = undefined;
 	}
 
 	function onPointerDown(ev: PointerEvent) {
+		console.log('DOWN');
 		dragging = true;
 		selection = {
 			type: 'start',
@@ -92,6 +94,7 @@
 	function onPointerMove(ev: PointerEvent) {
 		if (!dragging) return;
 		if (!selection) return;
+		console.log('MOVE');
 
 		selection = {
 			type: 'progress',
@@ -103,11 +106,19 @@
 	}
 
 	function onPointerUp(ev: PointerEvent) {
+		console.log('UP');
 		dragging = false;
 	}
 </script>
 
-<div class="main" bind:this={main}>
+<div class="main" bind:clientWidth={width} bind:clientHeight={height}>
+	<canvas
+		bind:this={canvas}
+		on:pointerdown={(e) => onPointerDown(e)}
+		on:pointermove={(e) => onPointerMove(e)}
+		on:pointerup={(e) => onPointerUp(e)}
+	>
+	</canvas>
 	<div class="menu">
 		<input type="text" bind:value={text} />
 		<button on:click={generate}>Do it</button>
@@ -116,6 +127,11 @@
 	{#each Object.values(generations) as generation}
 		<Generation {...generation} />
 	{/each}
+	<div
+		class="selection"
+		class:disabled={selection?.type !== 'progress'}
+		bind:this={selectionDiv}
+	></div>
 </div>
 
 <style>
@@ -216,5 +232,20 @@
 		flex-direction: column;
 		align-items: flex-end;
 		gap: 8px;
+	}
+
+	canvas {
+		width: 100%;
+		height: 100%;
+	}
+
+	.selection {
+		position: absolute;
+		background-color: #ff000044;
+		pointer-events: none;
+	}
+
+	.selection.disabled {
+		display: none;
 	}
 </style>

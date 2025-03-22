@@ -1,10 +1,8 @@
 <script lang="ts">
 	import { generate } from '$lib/fooocus';
-	import { Assets, Sprite, Texture, type Application } from 'pixi.js';
 	import { onMount } from 'svelte';
 
 	let {
-		app,
 		text,
 		x,
 		y,
@@ -12,47 +10,44 @@
 		height,
 		done
 	}: {
-		app: Application;
 		text: string;
 		x: number;
 		y: number;
 		width: number;
 		height: number;
-		done: () => void;
+		done: (img: HTMLImageElement) => void;
 	} = $props();
 
+	let img: HTMLImageElement;
+	let src = $state('');
+
 	onMount(async () => {
-		await Assets.load('http://localhost:5173/marquee.png');
-		const texture = Texture.from('http://localhost:5173/marquee.png');
-
-		const sprite = new Sprite({
-			texture: texture,
-			x: x,
-			y: y,
-			width: width,
-			height: height
-		});
-		app.stage.addChild(sprite);
-
 		const urls = generate({
 			text: text,
 			width: width,
 			height: height
 		});
-		for await (const [url, asset] of urls) {
-			await Assets.load(asset);
-			const texture = Texture.from(url);
-			sprite.texture = texture;
-			app.render();
+		for await (const url of urls) {
+			src = url;
 		}
 
-		app.stage.removeChild(sprite);
-
-		done();
+		done(img);
 	});
 </script>
 
-<div></div>
+<div style="width: {width}px; height: {height}px; left: {x}px; top: {y}px;">
+	<img {src} {width} {height} alt="" bind:this={img} />
+</div>
 
 <style>
+	div {
+		position: absolute;
+		border: 1px dashed black;
+		background-color: #00000066;
+	}
+
+	img {
+		width: 100%;
+		height: 100%;
+	}
 </style>
