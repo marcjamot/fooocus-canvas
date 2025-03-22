@@ -121,9 +121,15 @@
 			height: height,
 			x: x,
 			y: y,
+			resolution: resolution,
 			inpaint: inpaint,
-			done: (img) => {
-				pageAPI.drawImage(img, x, y, width, height);
+			done: async (data) => {
+				const image = new Image();
+				image.onload = () => {
+					pageAPI.drawImage(image, x, y, width, height);
+				};
+				image.src = data;
+
 				delete generations[id];
 				generations = generations;
 				working = false;
@@ -175,11 +181,17 @@
 	class="selection"
 	class:display-none={!active}
 	class:disabled={selection?.type !== 'progress'}
+	class:lowres={selection?.type === 'progress' &&
+		Math.abs(selection.sx - selection.ex) * Math.abs(selection.sy - selection.ey) > 600000}
 	bind:this={selectionDiv}
 ></div>
 <div class="action" class:display-none={!active}>
 	<input type="text" bind:value={text} />
 	<button onclick={generate} disabled={!canGenerate}>Generate</button>
+	<!-- {#if selection?.type === 'progress'}
+		<p>Width: {Math.abs(selection.sx - selection.ex)}</p>
+		<p>Height: {Math.abs(selection.sy - selection.ey)}</p>
+	{/if} -->
 </div>
 
 <style>
@@ -215,6 +227,15 @@
 			right top;
 		animation: border-dance 1s infinite linear;
 	}
+
+	.selection.lowres {
+		background-image:
+			linear-gradient(90deg, #a60000 50%, transparent 50%),
+			linear-gradient(90deg, #a60000 50%, transparent 50%),
+			linear-gradient(0deg, #a60000 50%, transparent 50%),
+			linear-gradient(0deg, #a60000 50%, transparent 50%);
+	}
+
 	@keyframes border-dance {
 		0% {
 			background-position:

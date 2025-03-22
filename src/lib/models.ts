@@ -1,6 +1,6 @@
 export interface PageAPI {
 	clearRect(x: number, y: number, width: number, height: number): void;
-	drawImage(img: HTMLImageElement, x: number, y: number, width: number, height: number): void;
+	drawImage(img: CanvasImageSource, x: number, y: number, width: number, height: number): void;
 	getImageData(x: number, y: number, width: number, height: number): ImageData;
 }
 

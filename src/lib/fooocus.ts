@@ -1,6 +1,6 @@
 import { Client } from '@gradio/client';
 
-interface Resolution {
+export interface Resolution {
 	w: number;
 	h: number;
 	aW: number;
@@ -55,17 +55,21 @@ export function bestResolution(width: number, height: number): Resolution {
 
 export async function* generate(args: {
 	text: string;
-	width: number;
-	height: number;
+	resolution: Resolution;
 	inpaint: {
 		image: string;
 		mask: string;
 	} | null;
 }): AsyncIterable<string> {
-	const performance = 'Extreme Speed';
-	const resolution = bestResolution(args.width, args.height);
-	const resolutionString = `${resolution.w}×${resolution.h} <span style="color: grey;"> ∣ ${resolution.aW}:${resolution.aH}</span>`;
-	const styles = ['Fooocus V2', 'Fooocus Enhance', 'Fooocus Sharp'];
+	const performance: 'Quality' | 'Speed' | 'Extreme Speed' = 'Extreme Speed';
+	const resolutionString = `${args.resolution.w}×${args.resolution.h} <span style="color: grey;"> ∣ ${args.resolution.aW}:${args.resolution.aH}</span>`;
+	const styles = [
+		'Fooocus V2',
+		'Fooocus Enhance',
+		'Fooocus Sharp',
+		'Fooocus Semi Realistic',
+		'SAI Anime'
+	];
 
 	const fooocus = await Client.connect('http://localhost:5173/fooocus');
 
@@ -243,7 +247,13 @@ export async function* generate(args: {
 			yield data[1].value;
 		}
 		if (data[3].visible) {
-			yield `http://localhost:5173/fooocus/file=${data[3].value[0].name}`;
+			const res = await fetch(`http://localhost:5173/fooocus/file=${data[3].value[0].name}`);
+			const arrayBuffer = await res.arrayBuffer();
+			const bytes = new Uint8Array(arrayBuffer);
+			const b64data =
+				'data:image/png;base64,' +
+				btoa(bytes.reduce((data, byte) => data + String.fromCharCode(byte), ''));
+			yield b64data;
 			break;
 		}
 	}

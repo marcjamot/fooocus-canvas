@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { generate } from '$lib/fooocus';
+	import { generate, type Resolution } from '$lib/fooocus';
 	import { onMount } from 'svelte';
 
 	let {
@@ -8,6 +8,7 @@
 		y,
 		width,
 		height,
+		resolution,
 		inpaint,
 		done
 	}: {
@@ -16,33 +17,41 @@
 		y: number;
 		width: number;
 		height: number;
+		resolution: Resolution;
 		inpaint: {
 			image: string;
 			mask: string;
 		} | null;
-		done: (img: HTMLImageElement) => void;
+		done: (data: string) => void;
 	} = $props();
 
 	let img: HTMLImageElement;
 	let src = $state('');
 
 	onMount(async () => {
-		const urls = generate({
+		let lastData: string;
+		const datas = generate({
 			text: text,
-			width: width,
-			height: height,
+			resolution: resolution,
 			inpaint: inpaint
 		});
-		for await (const url of urls) {
-			src = url;
+		for await (const data of datas) {
+			src = data;
+			lastData = data;
 		}
-
-		done(img);
+		done(lastData!);
 	});
 </script>
 
 <div style="width: {width + 4}px; height: {height + 4}px; left: {x - 2}px; top: {y - 2}px;">
-	<img class:hidden={src === ''} {src} {width} {height} alt="" bind:this={img} />
+	<img
+		class:hidden={src === ''}
+		{src}
+		width={resolution.w}
+		height={resolution.h}
+		alt=""
+		bind:this={img}
+	/>
 </div>
 
 <style>
