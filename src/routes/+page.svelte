@@ -1,12 +1,6 @@
 <script lang="ts">
-	import { onMount, type ComponentProps } from 'svelte';
+	import type { ComponentProps } from 'svelte';
 	import Generation from './Generation.svelte';
-
-	/**
-	 * TODO:
-	 * - drag to move?
-	 * - layers?
-	 */
 
 	let canvas: HTMLCanvasElement;
 	let dragging = false;
@@ -23,34 +17,41 @@
 				ex: number;
 				ey: number;
 		  }
-		| undefined;
+		| undefined = $state(undefined);
 	let selectionDiv: HTMLDivElement;
-	let text = '';
-	let generations: Record<string, ComponentProps<typeof Generation>> = {};
-	let width: number;
-	let height: number;
+	let text = $state('');
+	let generations: Record<string, ComponentProps<typeof Generation>> = $state({});
+	let width: number = $state(0);
+	let height: number = $state(0);
+	let working = $state(false);
 
-	$: if (canvas) {
-		canvas.width = width;
-		canvas.height = height;
-	}
+	$effect(() => {
+		if (canvas) {
+			canvas.width = width;
+			canvas.height = height;
+		}
+	});
 
-	$: if (selectionDiv && selection?.type === 'progress') {
-		const { sx, sy, ex, ey } = selection;
-		const width = Math.abs(sx - ex);
-		const height = Math.abs(sy - ey);
+	$effect(() => {
+		if (selectionDiv && selection?.type === 'progress') {
+			const { sx, sy, ex, ey } = selection;
+			const width = Math.abs(sx - ex);
+			const height = Math.abs(sy - ey);
 
-		let x = sx < ex ? sx : sx - width;
-		let y = sy < ey ? sy : sy - height;
+			let x = sx < ex ? sx : sx - width;
+			let y = sy < ey ? sy : sy - height;
 
-		selectionDiv.style.top = `${y}px`;
-		selectionDiv.style.left = `${x}px`;
-		selectionDiv.style.width = `${width}px`;
-		selectionDiv.style.height = `${height}px`;
-	}
+			selectionDiv.style.top = `${y}px`;
+			selectionDiv.style.left = `${x}px`;
+			selectionDiv.style.width = `${width}px`;
+			selectionDiv.style.height = `${height}px`;
+		}
+	});
 
 	async function generate() {
 		if (selection?.type !== 'progress') return;
+
+		working = true;
 
 		const { sx, sy, ex, ey } = selection;
 		const id = `${Math.random() * 1000000}`;
@@ -116,6 +117,7 @@
 				ctx.drawImage(img, x, y, width, height);
 				delete generations[id];
 				generations = generations;
+				working = false;
 			}
 		};
 		generations[id] = generation;
@@ -141,7 +143,6 @@
 	}
 
 	function onPointerDown(ev: PointerEvent) {
-		console.log('DOWN');
 		dragging = true;
 		selection = {
 			type: 'start',
@@ -153,7 +154,6 @@
 	function onPointerMove(ev: PointerEvent) {
 		if (!dragging) return;
 		if (!selection) return;
-		console.log('MOVE');
 
 		selection = {
 			type: 'progress',
@@ -165,7 +165,6 @@
 	}
 
 	function onPointerUp(ev: PointerEvent) {
-		console.log('UP');
 		dragging = false;
 	}
 </script>
@@ -173,15 +172,15 @@
 <div class="main" bind:clientWidth={width} bind:clientHeight={height}>
 	<canvas
 		bind:this={canvas}
-		on:pointerdown={(e) => onPointerDown(e)}
-		on:pointermove={(e) => onPointerMove(e)}
-		on:pointerup={(e) => onPointerUp(e)}
+		onpointerdown={(e) => onPointerDown(e)}
+		onpointermove={(e) => onPointerMove(e)}
+		onpointerup={(e) => onPointerUp(e)}
 	>
 	</canvas>
 	<div class="menu">
 		<input type="text" bind:value={text} />
-		<button on:click={generate}>Generate</button>
-		<button on:click={erase}>Erase</button>
+		<button onclick={generate} disabled={working}>Generate</button>
+		<button onclick={erase} disabled={working}>Erase</button>
 		<!-- <img src={imgsrc} alt="" width="100px" height="100px" /> -->
 	</div>
 	{#each Object.values(generations) as generation}
@@ -301,8 +300,42 @@
 
 	.selection {
 		position: absolute;
-		background-color: #ff000044;
 		pointer-events: none;
+
+		background-image:
+			linear-gradient(90deg, #454545 50%, transparent 50%),
+			linear-gradient(90deg, #454545 50%, transparent 50%),
+			linear-gradient(0deg, #454545 50%, transparent 50%),
+			linear-gradient(0deg, #454545 50%, transparent 50%);
+		background-repeat: repeat-x, repeat-x, repeat-y, repeat-y;
+		background-size:
+			15px 2px,
+			15px 2px,
+			2px 15px,
+			2px 15px;
+		background-position:
+			left top,
+			right bottom,
+			left bottom,
+			right top;
+		animation: border-dance 1s infinite linear;
+	}
+	@keyframes border-dance {
+		0% {
+			background-position:
+				left top,
+				right bottom,
+				left bottom,
+				right top;
+		}
+
+		100% {
+			background-position:
+				left 15px top,
+				right 15px bottom,
+				left bottom 15px,
+				right top 15px;
+		}
 	}
 
 	.selection.disabled {

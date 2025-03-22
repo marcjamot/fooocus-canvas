@@ -41,19 +41,34 @@
 	});
 </script>
 
-<div style="width: {width}px; height: {height}px; left: {x}px; top: {y}px;">
-	<img {src} {width} {height} alt="" bind:this={img} />
+<div style="width: {width+4}px; height: {height+4}px; left: {x-2}px; top: {y-2}px;">
+	<img class:hidden={src === ''} {src} {width} {height} alt="" bind:this={img} />
 </div>
 
 <style>
 	div {
 		position: absolute;
-		border: 1px dashed black;
-		background-color: #00000066;
+		backdrop-filter: blur(10px);
+
+		border: 2px solid transparent;
+		border-image: linear-gradient(
+			to bottom right,
+			#b827fc 0%,
+			#2c90fc 25%,
+			#b8fd33 50%,
+			#fec837 75%,
+			#fd1892 100%
+		);
+		border-image-slice: 1;
+		box-sizing: border-box;
 	}
 
 	img {
 		width: 100%;
 		height: 100%;
+	}
+
+	img.hidden {
+		visibility: hidden;
 	}
 </style>
