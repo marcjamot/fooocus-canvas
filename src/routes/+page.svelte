@@ -4,7 +4,6 @@
 
 	/**
 	 * TODO:
-	 * - include image data for generation
 	 * - add eraser to remove image data
 	 * - drag to move?
 	 * - layers?
@@ -62,12 +61,57 @@
 		const x = Math.min(sx, ex);
 		const y = Math.min(sy, ey);
 
+		// Keep context from surrounding image if any
+		const ctx = canvas.getContext('2d')!;
+		const imageData = ctx.getImageData(x, y, width, height);
+		const hasData = imageData.data.some((d) => d > 0);
+
+		let inpaint: { image: string; mask: string } | null = null;
+
+		if (hasData) {
+			const tempCanvas = document.createElement('canvas');
+			tempCanvas.width = width;
+			tempCanvas.height = height;
+			const tempCtx = tempCanvas.getContext('2d')!;
+			tempCtx.putImageData(imageData, 0, 0);
+			const image = tempCanvas.toDataURL('image/png');
+
+			// Mask
+			const maskCanvas = document.createElement('canvas');
+			maskCanvas.width = width;
+			maskCanvas.height = height;
+			const maskCtx = maskCanvas.getContext('2d')!;
+			const maskData = maskCtx.getImageData(0, 0, width, height);
+			for (let i = 0; i < maskData.data.length; i += 4) {
+				// If pixel has meaningful data (alpha > 0), make it black in the mask
+				if (imageData.data[i + 3] > 0) {
+					maskData.data[i] = 0;
+					maskData.data[i + 1] = 0;
+					maskData.data[i + 2] = 0;
+					maskData.data[i + 3] = 0;
+				} else {
+					maskData.data[i] = 255;
+					maskData.data[i + 1] = 255;
+					maskData.data[i + 2] = 255;
+					maskData.data[i + 3] = 255;
+				}
+			}
+			maskCtx.putImageData(maskData, 0, 0);
+			const mask = maskCanvas.toDataURL('image/png');
+
+			inpaint = {
+				image: image,
+				mask: mask
+			};
+		}
+
 		const generation: ComponentProps<typeof Generation> = {
 			text: text,
 			width: width,
 			height: height,
 			x: x,
 			y: y,
+			inpaint: inpaint,
 			done: (img) => {
 				const ctx = canvas.getContext('2d')!;
 				ctx.drawImage(img, x, y, width, height);

@@ -8,6 +8,7 @@
 		y,
 		width,
 		height,
+		inpaint,
 		done
 	}: {
 		text: string;
@@ -15,6 +16,10 @@
 		y: number;
 		width: number;
 		height: number;
+		inpaint: {
+			image: string;
+			mask: string;
+		} | null;
 		done: (img: HTMLImageElement) => void;
 	} = $props();
 
@@ -25,7 +30,8 @@
 		const urls = generate({
 			text: text,
 			width: width,
-			height: height
+			height: height,
+			inpaint: inpaint
 		});
 		for await (const url of urls) {
 			src = url;
