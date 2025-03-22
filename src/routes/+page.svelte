@@ -4,7 +4,6 @@
 
 	/**
 	 * TODO:
-	 * - add eraser to remove image data
 	 * - drag to move?
 	 * - layers?
 	 */
@@ -125,6 +124,22 @@
 		selection = undefined;
 	}
 
+	function erase() {
+		if (selection?.type !== 'progress') return;
+
+		const { sx, sy, ex, ey } = selection;
+
+		const width = Math.abs(sx - ex);
+		const height = Math.abs(sy - ey);
+		const x = Math.min(sx, ex);
+		const y = Math.min(sy, ey);
+
+		const ctx = canvas.getContext('2d')!;
+		ctx.clearRect(x, y, width, height);
+
+		selection = undefined;
+	}
+
 	function onPointerDown(ev: PointerEvent) {
 		console.log('DOWN');
 		dragging = true;
@@ -165,7 +180,8 @@
 	</canvas>
 	<div class="menu">
 		<input type="text" bind:value={text} />
-		<button on:click={generate}>Do it</button>
+		<button on:click={generate}>Generate</button>
+		<button on:click={erase}>Erase</button>
 		<!-- <img src={imgsrc} alt="" width="100px" height="100px" /> -->
 	</div>
 	{#each Object.values(generations) as generation}
