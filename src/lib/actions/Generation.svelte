@@ -49,6 +49,7 @@
 	div {
 		position: absolute;
 		backdrop-filter: blur(10px);
+		background-color: #ffffff33;
 
 		border: 2px solid transparent;
 		border-image: linear-gradient(

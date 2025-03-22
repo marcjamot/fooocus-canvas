@@ -1,29 +1,34 @@
 <script lang="ts">
-	import type { ComponentProps } from 'svelte';
-	import Generation from './Generation.svelte';
+	import Generation from '$lib/actions/Generation.svelte';
+	import type { PageAPI, Selection } from '$lib/models';
+	import GenerateAction from '$lib/actions/GenerateAction.svelte';
 
 	let canvas: HTMLCanvasElement;
 	let dragging = false;
-	let selection:
-		| {
-				type: 'start';
-				sx: number;
-				sy: number;
-		  }
-		| {
-				type: 'progress';
-				sx: number;
-				sy: number;
-				ex: number;
-				ey: number;
-		  }
-		| undefined = $state(undefined);
+	let selection: Selection = $state(undefined);
 	let selectionDiv: HTMLDivElement;
-	let text = $state('');
-	let generations: Record<string, ComponentProps<typeof Generation>> = $state({});
 	let width: number = $state(0);
 	let height: number = $state(0);
-	let working = $state(false);
+
+	const pageAPI = {
+		drawImage: (img, x, y, width, height) => {
+			const ctx = canvas.getContext('2d')!;
+			ctx.drawImage(img, x, y, width, height);
+		},
+
+		getImageData: (x, y, width, height) => {
+			const ctx = canvas.getContext('2d')!;
+			return ctx.getImageData(x, y, width, height);
+		},
+
+		getSelection: () => {
+			return selection;
+		},
+
+		setSelection: (newSelection) => {
+			selection = newSelection;
+		}
+	} satisfies PageAPI;
 
 	$effect(() => {
 		if (canvas) {
@@ -47,84 +52,6 @@
 			selectionDiv.style.height = `${height}px`;
 		}
 	});
-
-	async function generate() {
-		if (selection?.type !== 'progress') return;
-
-		working = true;
-
-		const { sx, sy, ex, ey } = selection;
-		const id = `${Math.random() * 1000000}`;
-
-		const width = Math.abs(sx - ex);
-		const height = Math.abs(sy - ey);
-		const x = Math.min(sx, ex);
-		const y = Math.min(sy, ey);
-
-		// Keep context from surrounding image if any
-		const ctx = canvas.getContext('2d')!;
-		const imageData = ctx.getImageData(x, y, width, height);
-		const hasData = imageData.data.some((d) => d > 0);
-
-		let inpaint: { image: string; mask: string } | null = null;
-
-		if (hasData) {
-			const tempCanvas = document.createElement('canvas');
-			tempCanvas.width = width;
-			tempCanvas.height = height;
-			const tempCtx = tempCanvas.getContext('2d')!;
-			tempCtx.putImageData(imageData, 0, 0);
-			const image = tempCanvas.toDataURL('image/png');
-
-			// Mask
-			const maskCanvas = document.createElement('canvas');
-			maskCanvas.width = width;
-			maskCanvas.height = height;
-			const maskCtx = maskCanvas.getContext('2d')!;
-			const maskData = maskCtx.getImageData(0, 0, width, height);
-			for (let i = 0; i < maskData.data.length; i += 4) {
-				// If pixel has meaningful data (alpha > 0), make it black in the mask
-				if (imageData.data[i + 3] > 0) {
-					maskData.data[i] = 0;
-					maskData.data[i + 1] = 0;
-					maskData.data[i + 2] = 0;
-					maskData.data[i + 3] = 0;
-				} else {
-					maskData.data[i] = 255;
-					maskData.data[i + 1] = 255;
-					maskData.data[i + 2] = 255;
-					maskData.data[i + 3] = 255;
-				}
-			}
-			maskCtx.putImageData(maskData, 0, 0);
-			const mask = maskCanvas.toDataURL('image/png');
-
-			inpaint = {
-				image: image,
-				mask: mask
-			};
-		}
-
-		const generation: ComponentProps<typeof Generation> = {
-			text: text,
-			width: width,
-			height: height,
-			x: x,
-			y: y,
-			inpaint: inpaint,
-			done: (img) => {
-				const ctx = canvas.getContext('2d')!;
-				ctx.drawImage(img, x, y, width, height);
-				delete generations[id];
-				generations = generations;
-				working = false;
-			}
-		};
-		generations[id] = generation;
-		generations = generations;
-
-		selection = undefined;
-	}
 
 	function erase() {
 		if (selection?.type !== 'progress') return;
@@ -177,15 +104,7 @@
 		onpointerup={(e) => onPointerUp(e)}
 	>
 	</canvas>
-	<div class="menu">
-		<input type="text" bind:value={text} />
-		<button onclick={generate} disabled={working}>Generate</button>
-		<button onclick={erase} disabled={working}>Erase</button>
-		<!-- <img src={imgsrc} alt="" width="100px" height="100px" /> -->
-	</div>
-	{#each Object.values(generations) as generation}
-		<Generation {...generation} />
-	{/each}
+	<GenerateAction {pageAPI} />
 	<div
 		class="selection"
 		class:disabled={selection?.type !== 'progress'}
@@ -281,18 +200,6 @@
 		transform: scaleX(1) scaleY(1) scaleZ(1);
 	}
 
-	.menu {
-		position: absolute;
-		top: 8px;
-		right: 8px;
-		padding: 16px;
-		border: 1px dashed white;
-		display: flex;
-		flex-direction: column;
-		align-items: flex-end;
-		gap: 8px;
-	}
-
 	canvas {
 		width: 100%;
 		height: 100%;
@@ -301,6 +208,8 @@
 	.selection {
 		position: absolute;
 		pointer-events: none;
+		backdrop-filter: blur(10px);
+		background-color: #ffffff33;
 
 		background-image:
 			linear-gradient(90deg, #454545 50%, transparent 50%),
