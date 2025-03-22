@@ -5,12 +5,13 @@ Create any image you want using an iterative approach. The web-based canvas comb
 ## Image editing tools
 
 - Generate image through [Fooocus](https://github.com/lllyasviel/Fooocus). This allows you to create content anywhere on the canvas and respects any image content already there (inpainting).
-- Standard image editing tools such as pen, brush, eraser, filling can.
-- Powerful selection tools to more eaily replace content.
-- Layers with common functionality such as merge and hide.
-- Basic filters such as blur and sharpen.
-- [Fooocus](https://github.com/lllyasviel/Fooocus) based filters such as upscale, change color, change style.
-- Upload or drop your own images on the canvas.
+- **Todo**: Standard image editing tools such as pen, brush, eraser, filling can.
+- **Todo**: Powerful selection tools to more eaily replace content.
+- **Todo**: Layers with common functionality such as merge and hide.
+- **Todo**: Basic filters such as blur and sharpen.
+- **Todo**: [Fooocus](https://github.com/lllyasviel/Fooocus) based filters such as upscale, change color, change style.
+- **Todo**: Upload or drop your own images on the canvas.
+- **Todo**: More advanced control of Fooocus generation.
 
 ## Requirements
 
