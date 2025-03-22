@@ -8,13 +8,19 @@
 
 	const NAME = 'Generate Image';
 
-	let active = $derived(toolState.active === NAME);
 	let dragging = false;
-	let selection: Selection = $state(undefined);
+	let selection = $state<Selection>(undefined);
 	let selectionDiv: HTMLDivElement;
 	let generations: Record<string, ComponentProps<typeof Generation>> = $state({});
 	let text = $state('A cat with a hat');
 	let working = $state(false);
+
+	let active = $derived(toolState.active === NAME);
+	let canGenerate = $derived(
+		!working &&
+			selection?.type === 'progress' &&
+			Math.abs(selection.ex - selection.sx) * Math.abs(selection.ey - selection.sy) > 1024
+	);
 
 	onMount(() => {
 		toolState.tools = [
@@ -151,16 +157,16 @@
 	onpointermove={(e) => onPointerMove(e)}
 	onpointerup={(e) => onPointerUp(e)}
 ></div>
-<div class="action" class:display-none={!active}>
-	<input type="text" bind:value={text} />
-	<button onclick={generate} disabled={working}>Generate</button>
-</div>
 <div
 	class="selection"
 	class:display-none={!active}
 	class:disabled={selection?.type !== 'progress'}
 	bind:this={selectionDiv}
 ></div>
+<div class="action" class:display-none={!active}>
+	<input type="text" bind:value={text} />
+	<button onclick={generate} disabled={!canGenerate}>Generate</button>
+</div>
 
 <style>
 	.backdrop {
@@ -169,20 +175,6 @@
 		left: 0;
 		right: 0;
 		bottom: 0;
-	}
-
-	.action {
-		position: absolute;
-		top: 8px;
-		right: 8px;
-		padding: 16px;
-		background-color: #000000aa;
-		border: 1px solid black;
-		border-radius: 8px;
-		display: flex;
-		flex-direction: column;
-		align-items: flex-end;
-		gap: 8px;
 	}
 
 	.selection {
