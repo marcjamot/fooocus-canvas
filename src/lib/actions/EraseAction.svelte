@@ -6,10 +6,10 @@
 	const { pageAPI }: { pageAPI: PageAPI } = $props();
 
 	const NAME = 'Erase';
-	const SIZE = 80;
 
 	let active = $derived(toolState.active === NAME);
 	let dragging = $state(false);
+	let size = $state(80);
 	let x = $state(0);
 	let y = $state(0);
 
@@ -30,7 +30,7 @@
 		x = ev.x;
 		y = ev.y;
 
-		pageAPI.clearRect(x - SIZE / 2, y - SIZE / 2, SIZE, SIZE);
+		pageAPI.clearRect(x - size / 2, y - size / 2, size, size);
 	}
 
 	function onPointerMove(ev: PointerEvent) {
@@ -41,7 +41,7 @@
 
 		if (!dragging) return;
 
-		pageAPI.clearRect(x - SIZE / 2, y - SIZE / 2, SIZE, SIZE);
+		pageAPI.clearRect(x - size / 2, y - size / 2, size, size);
 	}
 
 	function onPointerUp(ev: PointerEvent) {
@@ -59,8 +59,11 @@
 <div
 	class="eraser"
 	class:display-none={!active || (x === 0 && y === 0)}
-	style="top: {y - SIZE / 2}px; left: {x - SIZE / 2}px; width: {SIZE}px; height: {SIZE}px;"
+	style="top: {y - size / 2}px; left: {x - size / 2}px; width: {size}px; height: {size}px;"
 ></div>
+<div class="action" class:display-none={!active}>
+	<input type="range" min={1} max={512} bind:value={size} />
+</div>
 
 <style>
 	.backdrop {
