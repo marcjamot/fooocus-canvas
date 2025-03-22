@@ -37,13 +37,6 @@ const RESOLUTIONS: Resolution[] = [
 	{ w: 1728, h: 576, aW: 3, aH: 1, aspect: 3 / 1 }
 ] as const;
 
-const RESOLUTIONS_MAP = Object.fromEntries(
-	RESOLUTIONS.map((resolution) => [
-		`${resolution.w}x${resolution.h}`,
-		`${resolution.w}×${resolution.h} <span style="color: grey;"> ∣ ${resolution.aW}:${resolution.aH}</span>`
-	])
-);
-
 function bestResolution(width: number, height: number): Resolution {
 	const selectionAspect = width / height;
 
@@ -60,21 +53,6 @@ function bestResolution(width: number, height: number): Resolution {
 	return bestResolution;
 }
 
-export function closestResolution(width: number, height: number): [number, number] {
-	const resolution = bestResolution(width, height);
-
-	let w = width;
-	let h = height;
-
-	if (w < height) {
-		h = w / resolution.aspect;
-	} else {
-		w = h * resolution.aspect;
-	}
-
-	return [w, h];
-}
-
 export async function* generate(args: {
 	text: string;
 	width: number;
@@ -86,7 +64,7 @@ export async function* generate(args: {
 }): AsyncIterable<string> {
 	const performance = 'Extreme Speed';
 	const resolution = bestResolution(args.width, args.height);
-	if (!resolution) throw new Error(`Unknown resolution: ${args.width}x${args.height}`);
+	const resolutionString = `${resolution.w}×${resolution.h} <span style="color: grey;"> ∣ ${resolution.aW}:${resolution.aH}</span>`;
 	const styles = ['Fooocus V2', 'Fooocus Enhance', 'Fooocus Sharp'];
 
 	const fooocus = await Client.connect('http://localhost:5173/fooocus');
@@ -97,7 +75,7 @@ export async function* generate(args: {
 		'',
 		styles,
 		performance,
-		RESOLUTIONS_MAP[`${resolution.w}x${resolution.h}`],
+		resolutionString,
 		1,
 		'png',
 		`${Math.floor(Math.random() * (1024 * 1024 * 1024 - 1))}`,
