@@ -21,6 +21,14 @@
 		return canvas.getImageData(x, y, width, height);
 	}
 
+	export function grayscale(path: Path2D) {
+		canvas.grayscale(path);
+	}
+
+	export function recolor(path: Path2D, color: string) {
+		canvas.recolor(path, color);
+	}
+
 	export function reset() {
 		canvas.reset();
 	}

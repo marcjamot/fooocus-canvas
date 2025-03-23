@@ -3,6 +3,8 @@ export interface CanvasAPI {
 	drawImage(img: CanvasImageSource, x: number, y: number, width: number, height: number): void;
 	erase(path: Path2D): void;
 	getImageData(x: number, y: number, width: number, height: number): ImageData;
+	grayscale(path: Path2D): void;
+	recolor(path: Path2D, color: string): void;
 	reset(): void;
 }
 

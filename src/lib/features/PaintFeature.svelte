@@ -6,9 +6,11 @@
 
 	const { api }: { api: CanvasAPI } = $props();
 
+	const ACTIONS = ["Paint", "Grayscale", "Recolor"] as const;
 	const BRUSH_TYPES = ["● Circle", "■ Square"] as const;
 	const NAME = "Paint";
 
+	let action = $state<(typeof ACTIONS)[number]>("Paint");
 	let active = $derived(toolState.active === NAME);
 	let brush = $state<(typeof BRUSH_TYPES)[number]>("● Circle");
 	let color = $state("#000");
@@ -45,7 +47,7 @@
 		y = ev.y;
 
 		const path = pathToRender(x - size / 2, y - size / 2, size, size);
-		api.draw(path, color);
+		takeAction(path);
 	}
 
 	function onPointerMove(ev: PointerEvent) {
@@ -57,7 +59,7 @@
 		if (!dragging) return;
 
 		const path = pathToRender(x - size / 2, y - size / 2, size, size);
-		api.draw(path, color);
+		takeAction(path);
 	}
 
 	function onPointerUp(ev: PointerEvent) {
@@ -78,6 +80,22 @@
 		}
 		return path;
 	}
+
+	function takeAction(path: Path2D) {
+		switch (action) {
+			case "Grayscale":
+				api.grayscale(path);
+				break;
+			case "Paint":
+				api.draw(path, color);
+				break;
+			case "Recolor":
+				api.recolor(path, color);
+				break;
+			default:
+				action satisfies never;
+		}
+	}
 </script>
 
 <div
@@ -95,12 +113,22 @@
 ></canvas>
 <div class="actions" class:display-none={!active}>
 	<div class="action">
+		<span>Action:</span>
+		{#each ACTIONS as actionType}
+			<label>
+				<input type="radio" value={actionType} bind:group={action} />
+				{actionType}
+			</label>
+		{/each}
+	</div>
+	<div class="action">
 		<span>Brush type:</span>
-		<select bind:value={brush}>
-			{#each BRUSH_TYPES as brushType}
-				<option value={brushType}>{brushType}</option>
-			{/each}
-		</select>
+		{#each BRUSH_TYPES as brushType}
+			<label>
+				<input type="radio" value={brushType} bind:group={brush} />
+				{brushType}
+			</label>
+		{/each}
 	</div>
 	<div style="margin: 0 -10px -10px;">
 		<ColorPicker bind:hex={color} isDialog={false} />

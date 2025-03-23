@@ -61,6 +61,24 @@
 		return context.getImageData(x * ratio, y * ratio, width * ratio, height * ratio);
 	}
 
+	export function grayscale(path: Path2D) {
+		if (lastAction !== "draw") saveHistory();
+		lastAction = "draw";
+
+		context.globalCompositeOperation = "saturation";
+		context.fillStyle = "#000";
+		context.fill(path);
+	}
+
+	export function recolor(path: Path2D, color: string) {
+		if (lastAction !== "draw") saveHistory();
+		lastAction = "draw";
+
+		context.globalCompositeOperation = "color";
+		context.fillStyle = color;
+		context.fill(path);
+	}
+
 	export function reset() {
 		saveHistory();
 		lastAction = "reset";
