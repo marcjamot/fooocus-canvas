@@ -1,8 +1,9 @@
-export interface PageAPI {
-	clearRect(x: number, y: number, width: number, height: number): void;
+export interface CanvasAPI {
+	draw(path: Path2D, color: string): void;
 	drawImage(img: CanvasImageSource, x: number, y: number, width: number, height: number): void;
-	drawRect(x: number, y: number, width: number, height: number): void;
+	erase(path: Path2D): void;
 	getImageData(x: number, y: number, width: number, height: number): ImageData;
+	reset(): void;
 }
 
 export type Selection =

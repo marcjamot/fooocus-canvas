@@ -1,11 +1,11 @@
 <script lang="ts">
-	import type { PageAPI, Selection } from "$lib/models";
+	import type { CanvasAPI, Selection } from "$lib/models";
 	import { onMount, type ComponentProps } from "svelte";
 	import Generation from "./Generation.svelte";
 	import { toolState } from "$lib/states.svelte";
 	import { bestResolution, PerformanceValues, type Performance } from "$lib/fooocus";
 
-	const { pageAPI }: { pageAPI: PageAPI } = $props();
+	const { api }: { api: CanvasAPI } = $props();
 
 	const NAME = "Generate Image";
 
@@ -62,14 +62,14 @@
 		const resolution = bestResolution(width, height);
 
 		// Keep context from surrounding image if any
-		const imageData = pageAPI.getImageData(x, y, width, height);
+		const imageData = api.getImageData(x, y, width, height);
 		const hasData = imageData.data.some((d) => d > 0);
 
 		let inpaint: { image: string; mask: string } | null = null;
 		if (hasData) {
 			const imageCanvas = document.createElement("canvas");
-			imageCanvas.width = width;
-			imageCanvas.height = height;
+			imageCanvas.width = imageData.width;
+			imageCanvas.height = imageData.height;
 			const imageCtx = imageCanvas.getContext("2d")!;
 			imageCtx.putImageData(imageData, 0, 0);
 
@@ -77,15 +77,15 @@
 			scaledImageCanvas.width = resolution.w;
 			scaledImageCanvas.height = resolution.h;
 			const scaledImageCtx = scaledImageCanvas.getContext("2d")!;
-			scaledImageCtx.drawImage(imageCanvas, 0, 0, width, height, 0, 0, resolution.w, resolution.h);
+			scaledImageCtx.drawImage(imageCanvas, 0, 0, imageData.width, imageData.height, 0, 0, resolution.w, resolution.h);
 			const image = scaledImageCanvas.toDataURL("image/png");
 
 			// Mask
 			const maskCanvas = document.createElement("canvas");
-			maskCanvas.width = width;
-			maskCanvas.height = height;
+			maskCanvas.width = imageData.width;
+			maskCanvas.height = imageData.height;
 			const maskCtx = maskCanvas.getContext("2d")!;
-			const maskData = maskCtx.getImageData(0, 0, width, height);
+			const maskData = maskCtx.getImageData(0, 0, imageData.width, imageData.height);
 			for (let i = 0; i < maskData.data.length; i += 4) {
 				if (imageData.data[i + 3] > 0) {
 					maskData.data[i] = 0;
@@ -105,7 +105,7 @@
 			scaledMaskCanvas.width = resolution.w;
 			scaledMaskCanvas.height = resolution.h;
 			const scaledMaskCtx = scaledMaskCanvas.getContext("2d")!;
-			scaledMaskCtx.drawImage(maskCanvas, 0, 0, width, height, 0, 0, resolution.w, resolution.h);
+			scaledMaskCtx.drawImage(maskCanvas, 0, 0, imageData.width, imageData.height, 0, 0, resolution.w, resolution.h);
 			const mask = scaledMaskCanvas.toDataURL("image/png");
 
 			inpaint = {
@@ -126,7 +126,7 @@
 			done: async (data) => {
 				const image = new Image();
 				image.onload = () => {
-					pageAPI.drawImage(image, x, y, width, height);
+					api.drawImage(image, x, y, width, height);
 				};
 				image.src = data;
 
@@ -184,15 +184,23 @@
 	class:lowres={selection?.type === "progress" && Math.abs(selection.sx - selection.ex) * Math.abs(selection.sy - selection.ey) > 600000}
 	bind:this={selectionDiv}
 ></div>
-<div class="action" class:display-none={!active}>
-	<input type="text" bind:value={text} />
-	{#each PerformanceValues as value}
-		<label>
-			<input type="radio" {value} bind:group={performance} />
-			{value}
-		</label>
-	{/each}
-	<button onclick={generate} disabled={!canGenerate}>Generate</button>
+<div class="actions" class:display-none={!active}>
+	<div class="action">
+		<span>Prompt</span>
+		<input type="text" bind:value={text} />
+	</div>
+	<div class="action">
+		<span>Quality</span>
+		{#each PerformanceValues as value}
+			<label>
+				<input type="radio" {value} bind:group={performance} />
+				{value}
+			</label>
+		{/each}
+	</div>
+	<div class="action">
+		<button onclick={generate} disabled={!canGenerate}>Generate</button>
+	</div>
 	<!-- {#if selection?.type === 'progress'}
 		<p>Width: {Math.abs(selection.sx - selection.ex)}</p>
 		<p>Height: {Math.abs(selection.sy - selection.ey)}</p>

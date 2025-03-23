@@ -1,122 +1,20 @@
 <script lang="ts">
-	import type { PageAPI, Tool } from "$lib/models";
-	import GenerateAction from "$lib/actions/GenerateAction.svelte";
-	import EraseAction from "$lib/actions/EraseAction.svelte";
-	import PaintAction from "$lib/actions/PaintAction.svelte";
+	import type { CanvasAPI, Tool } from "$lib/models";
+	import EraseFeature from "$lib/features/EraseFeature.svelte";
+	import GenerateFeature from "$lib/features/GenerateFeature.svelte";
+	import PaintFeature from "$lib/features/PaintFeature.svelte";
 	import { toolState } from "$lib/states.svelte";
+	import Layers from "$lib/Layers.svelte";
 
-	let canvas: HTMLCanvasElement;
-	let history: HTMLCanvasElement[] = [];
-	let future: HTMLCanvasElement[] = [];
-	let lastAction: "clearRect" | "drawImage" | "drawRect" | undefined;
-	let width: number = $state(0);
-	let height: number = $state(0);
-
-	const pageAPI = {
-		clearRect: (x, y, width, height) => {
-			if (lastAction !== "clearRect") {
-				saveHistory();
-			}
-
-			lastAction = "clearRect";
-			const ctx = canvas.getContext("2d")!;
-			ctx.clearRect(x, y, width, height);
-		},
-
-		drawImage: (img, x, y, width, height) => {
-			saveHistory();
-			lastAction = "drawImage";
-			const ctx = canvas.getContext("2d")!;
-			ctx.drawImage(img, x, y, width, height);
-		},
-
-		drawRect: (x, y, width, height) => {
-			if (lastAction !== "drawRect") {
-				saveHistory();
-			}
-
-			lastAction = "drawRect";
-			const ctx = canvas.getContext("2d")!;
-			ctx.fillStyle = "black";
-			ctx.fillRect(x, y, width, height);
-		},
-
-		getImageData: (x, y, width, height) => {
-			const ctx = canvas.getContext("2d")!;
-			return ctx.getImageData(x, y, width, height);
-		},
-	} satisfies PageAPI;
-
-	$effect(() => {
-		if (canvas && width && height) {
-			(async () => {
-				const bmp = await createImageBitmap(canvas);
-				canvas.width = width;
-				canvas.height = height;
-				const ctx = canvas.getContext("2d")!;
-				ctx.drawImage(bmp, 0, 0, width, height);
-			})();
-		}
-	});
+	let layers: Layers;
 
 	function onKeyDown(event: KeyboardEvent) {
 		if ((event.metaKey || event.ctrlKey) && event.shiftKey && event.key === "z") {
 			event.preventDefault();
-			restoreFuture();
+			layers.redo();
 		} else if ((event.metaKey || event.ctrlKey) && event.key === "z") {
 			event.preventDefault();
-			restoreHistory();
-		}
-	}
-
-	function restoreFuture() {
-		const futureCanvas = future.shift();
-		if (!futureCanvas) return;
-
-		lastAction = undefined;
-
-		const historyCanvas = document.createElement("canvas");
-		historyCanvas.width = canvas.width;
-		historyCanvas.height = canvas.height;
-		const historyCtx = historyCanvas.getContext("2d")!;
-		historyCtx.drawImage(canvas, 0, 0);
-		history.push(historyCanvas);
-
-		const ctx = canvas.getContext("2d")!;
-		ctx.clearRect(0, 0, canvas.width, canvas.height);
-		ctx.drawImage(futureCanvas, 0, 0);
-	}
-
-	function restoreHistory() {
-		const historyCanvas = history.pop();
-		if (!historyCanvas) return;
-
-		lastAction = undefined;
-
-		const futureCanvas = document.createElement("canvas");
-		futureCanvas.width = canvas.width;
-		futureCanvas.height = canvas.height;
-		const futureCtx = futureCanvas.getContext("2d")!;
-		futureCtx.drawImage(canvas, 0, 0);
-		future.unshift(futureCanvas);
-
-		const ctx = canvas.getContext("2d")!;
-		ctx.clearRect(0, 0, canvas.width, canvas.height);
-		ctx.drawImage(historyCanvas, 0, 0);
-	}
-
-	function saveHistory() {
-		future = [];
-
-		const historyCanvas = document.createElement("canvas");
-		historyCanvas.width = canvas.width;
-		historyCanvas.height = canvas.height;
-		const historyCtx = historyCanvas.getContext("2d")!;
-		historyCtx.drawImage(canvas, 0, 0);
-		history.push(historyCanvas);
-
-		if (history.length > 10) {
-			history.shift();
+			layers.undo();
 		}
 	}
 
@@ -129,12 +27,12 @@
 	}
 </script>
 
-<div class="main" bind:clientWidth={width} bind:clientHeight={height}>
-	<canvas bind:this={canvas}> </canvas>
+<div class="main">
+	<Layers bind:this={layers} />
 
-	<PaintAction {pageAPI} />
-	<EraseAction {pageAPI} />
-	<GenerateAction {pageAPI} />
+	<EraseFeature api={layers} />
+	<GenerateFeature api={layers} />
+	<PaintFeature api={layers} />
 
 	<div class="tools">
 		{#each toolState.tools as tool}
@@ -242,11 +140,6 @@
 		transition: none;
 		-webkit-transform: scaleX(1) scaleY(1) scaleZ(1);
 		transform: scaleX(1) scaleY(1) scaleZ(1);
-	}
-
-	canvas {
-		width: 100%;
-		height: 100%;
 	}
 
 	.tools {
