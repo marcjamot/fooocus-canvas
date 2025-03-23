@@ -34,6 +34,18 @@
 		if (index === count) index -= 1;
 	}
 
+	function duplicateLayer() {
+		const currentCanvas = canvases[index];
+		const currentData = currentCanvas.getImageData(0, 0);
+
+		const canvas = mount(Canvas, { target: canvasesDiv });
+		setTimeout(() => {
+			canvas.putImageData(currentData, 0, 0);
+		}, 1);
+		canvases.push(canvas);
+		count += 1;
+	}
+
 	function mergeLayer() {
 		if (canvases.length === 1) return;
 		if (index === 0) return;
@@ -57,10 +69,56 @@
 		cL.putImageData(dM, 0, 0);
 		destroyLayer();
 	}
+
+	function moveLayerDown() {
+		if (canvases.length === 1) return;
+		if (index === 0) return;
+
+		const currentCanvas = canvases[index];
+		const lowerCanvas = canvases[index - 1];
+
+		const currentData = currentCanvas.getImageData(0, 0);
+		const lowerData = lowerCanvas.getImageData(0, 0);
+
+		currentCanvas.putImageData(lowerData, 0, 0);
+		lowerCanvas.putImageData(currentData, 0, 0);
+
+		index = index - 1;
+	}
+
+	function moveLayerUp() {
+		if (canvases.length === 1) return;
+		if (index === canvases.length - 1) return;
+
+		const currentCanvas = canvases[index];
+		const upperCanvas = canvases[index + 1];
+
+		const currentData = currentCanvas.getImageData(0, 0);
+		const upperData = upperCanvas.getImageData(0, 0);
+
+		currentCanvas.putImageData(upperData, 0, 0);
+		upperCanvas.putImageData(currentData, 0, 0);
+
+		index = index + 1;
+	}
 </script>
 
 <div class="canvases" bind:this={canvasesDiv}></div>
 <div class="layer-actions">
+	<div
+		class="layer-action"
+		onclick={duplicateLayer}
+		onkeydown={(e) => {
+			if (e.key === "Enter") duplicateLayer();
+		}}
+		role="button"
+		tabindex="0"
+	>
+		<div class="icon">
+			{"D"}
+			<img src={"/icons/brush.svg"} alt={"tool.name"} />
+		</div>
+	</div>
 	<div
 		class="layer-action"
 		onclick={addLayer}
@@ -94,6 +152,34 @@
 		onclick={mergeLayer}
 		onkeydown={(e) => {
 			if (e.key === "Enter") mergeLayer();
+		}}
+		role="button"
+		tabindex="0"
+	>
+		<div class="icon">
+			{"M"}
+			<img src={"/icons/brush.svg"} alt={"tool.name"} />
+		</div>
+	</div>
+	<div
+		class="layer-action"
+		onclick={moveLayerUp}
+		onkeydown={(e) => {
+			if (e.key === "Enter") moveLayerUp();
+		}}
+		role="button"
+		tabindex="0"
+	>
+		<div class="icon">
+			{"^"}
+			<img src={"/icons/brush.svg"} alt={"tool.name"} />
+		</div>
+	</div>
+	<div
+		class="layer-action"
+		onclick={moveLayerDown}
+		onkeydown={(e) => {
+			if (e.key === "Enter") moveLayerDown();
 		}}
 		role="button"
 		tabindex="0"
@@ -138,7 +224,7 @@
 		bottom: 8px;
 		right: 68px;
 		display: flex;
-		flex-direction: column-reverse;
+		flex-direction: column;
 		align-items: center;
 		gap: 8px;
 	}
