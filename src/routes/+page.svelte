@@ -39,7 +39,9 @@
 			<div
 				class="tool"
 				onclick={() => selectTool(tool)}
-				onkeydown={() => selectTool(tool)}
+				onkeydown={(e) => {
+					if (e.key === "enter") selectTool(tool);
+				}}
 				role="button"
 				tabindex="0"
 				class:active={toolState.active === tool.name}

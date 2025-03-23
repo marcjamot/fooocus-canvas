@@ -56,9 +56,16 @@
 		context.fill(path);
 	}
 
-	export function getImageData(x: number, y: number, width: number, height: number): ImageData {
+	export function getImageData(x: number, y: number, width?: number, height?: number): ImageData {
+		if (!width) width = canvas.width;
+		if (!height) height = canvas.height;
 		const ratio = devicePixelRatio.current || 1;
 		return context.getImageData(x * ratio, y * ratio, width * ratio, height * ratio);
+	}
+
+	export function putImageData(data: ImageData, x: number, y: number): void {
+		const ratio = devicePixelRatio.current || 1;
+		context.putImageData(data, x * ratio, y * ratio);
 	}
 
 	export function grayscale(path: Path2D) {
