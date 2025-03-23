@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { onMount } from "svelte";
-	import type { CanvasAPI } from "$lib/models";
+	import type { LayerAPI } from "$lib/models";
 	import { toolState } from "$lib/states.svelte";
 
-	const { api }: { api: CanvasAPI } = $props();
+	const { layerAPI }: { layerAPI: LayerAPI } = $props();
 
 	const BRUSH_TYPES = ["● Circle", "■ Square"] as const;
 	const NAME = "Erase";
@@ -48,6 +48,7 @@
 		y = ev.y;
 
 		const path = pathToRender(x - size / 2, y - size / 2, size, size);
+		const api = layerAPI.activeCanvas();
 		api.erase(path);
 	}
 
@@ -60,6 +61,7 @@
 		if (!dragging) return;
 
 		const path = pathToRender(x - size / 2, y - size / 2, size, size);
+		const api = layerAPI.activeCanvas();
 		api.erase(path);
 	}
 

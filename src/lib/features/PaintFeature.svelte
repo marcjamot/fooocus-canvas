@@ -1,10 +1,10 @@
 <script lang="ts">
 	import { onMount } from "svelte";
 	import ColorPicker from "svelte-awesome-color-picker";
-	import type { CanvasAPI } from "$lib/models";
+	import type { LayerAPI } from "$lib/models";
 	import { toolState } from "$lib/states.svelte";
 
-	const { api }: { api: CanvasAPI } = $props();
+	const { layerAPI }: { layerAPI: LayerAPI } = $props();
 
 	const ACTIONS = ["Paint", "Grayscale", "Recolor"] as const;
 	const BRUSH_TYPES = ["● Circle", "■ Square"] as const;
@@ -82,6 +82,7 @@
 	}
 
 	function takeAction(path: Path2D) {
+		const api = layerAPI.activeCanvas();
 		switch (action) {
 			case "Grayscale":
 				api.grayscale(path);

@@ -11,10 +11,10 @@
 	function onKeyDown(event: KeyboardEvent) {
 		if ((event.metaKey || event.ctrlKey) && event.shiftKey && event.key === "z") {
 			event.preventDefault();
-			layers.redo();
+			layers.activeCanvas().redo();
 		} else if ((event.metaKey || event.ctrlKey) && event.key === "z") {
 			event.preventDefault();
-			layers.undo();
+			layers.activeCanvas().undo();
 		}
 	}
 
@@ -30,9 +30,9 @@
 <div class="main">
 	<Layers bind:this={layers} />
 
-	<EraseFeature api={layers} />
-	<GenerateFeature api={layers} />
-	<PaintFeature api={layers} />
+	<EraseFeature layerAPI={layers} />
+	<GenerateFeature layerAPI={layers} />
+	<PaintFeature layerAPI={layers} />
 
 	<div class="tools">
 		{#each toolState.tools as tool}

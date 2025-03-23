@@ -5,7 +5,13 @@ export interface CanvasAPI {
 	getImageData(x: number, y: number, width: number, height: number): ImageData;
 	grayscale(path: Path2D): void;
 	recolor(path: Path2D, color: string): void;
+	redo(): void;
 	reset(): void;
+	undo(): void;
+}
+
+export interface LayerAPI {
+	activeCanvas(): CanvasAPI;
 }
 
 export type Selection =

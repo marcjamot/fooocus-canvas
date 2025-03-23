@@ -1,11 +1,11 @@
 <script lang="ts">
-	import type { CanvasAPI, Selection } from "$lib/models";
+	import type { LayerAPI, Selection } from "$lib/models";
 	import { onMount, type ComponentProps } from "svelte";
 	import Generation from "./Generation.svelte";
 	import { toolState } from "$lib/states.svelte";
 	import { bestResolution, PerformanceValues, type Performance } from "$lib/fooocus";
 
-	const { api }: { api: CanvasAPI } = $props();
+	const { layerAPI }: { layerAPI: LayerAPI } = $props();
 
 	const NAME = "Generate Image";
 
@@ -50,6 +50,8 @@
 
 	async function generate() {
 		if (selection?.type !== "progress") return;
+
+		const api = layerAPI.activeCanvas();
 
 		working = true;
 
