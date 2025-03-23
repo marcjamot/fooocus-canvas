@@ -30,9 +30,9 @@
 <div class="main">
 	<Layers bind:this={layers} />
 
+	<PaintFeature layerAPI={layers} />
 	<EraseFeature layerAPI={layers} />
 	<GenerateFeature layerAPI={layers} />
-	<PaintFeature layerAPI={layers} />
 
 	<div class="tools">
 		{#each toolState.tools as tool}
