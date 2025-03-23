@@ -64,13 +64,14 @@
 	}
 
 	export function putImageData(data: ImageData, x: number, y: number): void {
+		saveHistory();
 		const ratio = devicePixelRatio.current || 1;
 		context.putImageData(data, x * ratio, y * ratio);
 	}
 
 	export function grayscale(path: Path2D) {
-		if (lastAction !== "draw") saveHistory();
-		lastAction = "draw";
+		if (lastAction !== "grayscale") saveHistory();
+		lastAction = "grayscale";
 
 		context.globalCompositeOperation = "saturation";
 		context.fillStyle = "#000";
@@ -78,8 +79,8 @@
 	}
 
 	export function recolor(path: Path2D, color: string) {
-		if (lastAction !== "draw") saveHistory();
-		lastAction = "draw";
+		if (lastAction !== "recolor") saveHistory();
+		lastAction = "recolor";
 
 		context.globalCompositeOperation = "color";
 		context.fillStyle = color;
@@ -91,6 +92,7 @@
 		lastAction = "reset";
 
 		context.reset();
+		context.scale(devicePixelRatio.current || 1, devicePixelRatio.current || 1);
 	}
 
 	export function redo() {
@@ -106,10 +108,9 @@
 		historyCtx.drawImage(canvas, 0, 0);
 		history.push(historyCanvas);
 
-		context.save();
 		context.reset();
 		context.drawImage(futureCanvas, 0, 0, canvas.width, canvas.height);
-		context.restore();
+		context.scale(devicePixelRatio.current || 1, devicePixelRatio.current || 1);
 	}
 
 	export function undo() {
@@ -125,10 +126,9 @@
 		futureCtx.drawImage(canvas, 0, 0);
 		future.unshift(futureCanvas);
 
-		context.save();
 		context.reset();
 		context.drawImage(historyCanvas, 0, 0, canvas.width, canvas.height);
-		context.restore();
+		context.scale(devicePixelRatio.current || 1, devicePixelRatio.current || 1);
 	}
 
 	function saveHistory() {
