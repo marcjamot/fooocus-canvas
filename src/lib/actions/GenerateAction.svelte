@@ -1,41 +1,39 @@
 <script lang="ts">
-	import type { PageAPI, Selection } from '$lib/models';
-	import { onMount, type ComponentProps } from 'svelte';
-	import Generation from './Generation.svelte';
-	import { toolState } from '$lib/states.svelte';
-	import { bestResolution, PerformanceValues, type Performance } from '$lib/fooocus';
+	import type { PageAPI, Selection } from "$lib/models";
+	import { onMount, type ComponentProps } from "svelte";
+	import Generation from "./Generation.svelte";
+	import { toolState } from "$lib/states.svelte";
+	import { bestResolution, PerformanceValues, type Performance } from "$lib/fooocus";
 
 	const { pageAPI }: { pageAPI: PageAPI } = $props();
 
-	const NAME = 'Generate Image';
+	const NAME = "Generate Image";
 
 	let dragging = false;
 	let selection = $state<Selection>(undefined);
 	let selectionDiv: HTMLDivElement;
 	let generations: Record<string, ComponentProps<typeof Generation>> = $state({});
-	let performance = $state<Performance>('Extreme Speed');
-	let text = $state('A cat with a hat');
+	let performance = $state<Performance>("Extreme Speed");
+	let text = $state("A cat with a hat");
 	let working = $state(false);
 
 	let active = $derived(toolState.active === NAME);
 	let canGenerate = $derived(
-		!working &&
-			selection?.type === 'progress' &&
-			Math.abs(selection.ex - selection.sx) * Math.abs(selection.ey - selection.sy) > 1024
+		!working && selection?.type === "progress" && Math.abs(selection.ex - selection.sx) * Math.abs(selection.ey - selection.sy) > 1024,
 	);
 
 	onMount(() => {
 		toolState.tools = [
 			...toolState.tools,
 			{
-				icon: '/icons/magic.svg',
-				name: NAME
-			}
+				icon: "/icons/magic.svg",
+				name: NAME,
+			},
 		];
 	});
 
 	$effect(() => {
-		if (selectionDiv && selection?.type === 'progress') {
+		if (selectionDiv && selection?.type === "progress") {
 			const { sx, sy, ex, ey } = selection;
 			const width = Math.abs(sx - ex);
 			const height = Math.abs(sy - ey);
@@ -51,7 +49,7 @@
 	});
 
 	async function generate() {
-		if (selection?.type !== 'progress') return;
+		if (selection?.type !== "progress") return;
 
 		working = true;
 
@@ -69,24 +67,24 @@
 
 		let inpaint: { image: string; mask: string } | null = null;
 		if (hasData) {
-			const imageCanvas = document.createElement('canvas');
+			const imageCanvas = document.createElement("canvas");
 			imageCanvas.width = width;
 			imageCanvas.height = height;
-			const imageCtx = imageCanvas.getContext('2d')!;
+			const imageCtx = imageCanvas.getContext("2d")!;
 			imageCtx.putImageData(imageData, 0, 0);
 
-			const scaledImageCanvas = document.createElement('canvas');
+			const scaledImageCanvas = document.createElement("canvas");
 			scaledImageCanvas.width = resolution.w;
 			scaledImageCanvas.height = resolution.h;
-			const scaledImageCtx = scaledImageCanvas.getContext('2d')!;
+			const scaledImageCtx = scaledImageCanvas.getContext("2d")!;
 			scaledImageCtx.drawImage(imageCanvas, 0, 0, width, height, 0, 0, resolution.w, resolution.h);
-			const image = scaledImageCanvas.toDataURL('image/png');
+			const image = scaledImageCanvas.toDataURL("image/png");
 
 			// Mask
-			const maskCanvas = document.createElement('canvas');
+			const maskCanvas = document.createElement("canvas");
 			maskCanvas.width = width;
 			maskCanvas.height = height;
-			const maskCtx = maskCanvas.getContext('2d')!;
+			const maskCtx = maskCanvas.getContext("2d")!;
 			const maskData = maskCtx.getImageData(0, 0, width, height);
 			for (let i = 0; i < maskData.data.length; i += 4) {
 				if (imageData.data[i + 3] > 0) {
@@ -103,16 +101,16 @@
 			}
 			maskCtx.putImageData(maskData, 0, 0);
 
-			const scaledMaskCanvas = document.createElement('canvas');
+			const scaledMaskCanvas = document.createElement("canvas");
 			scaledMaskCanvas.width = resolution.w;
 			scaledMaskCanvas.height = resolution.h;
-			const scaledMaskCtx = scaledMaskCanvas.getContext('2d')!;
+			const scaledMaskCtx = scaledMaskCanvas.getContext("2d")!;
 			scaledMaskCtx.drawImage(maskCanvas, 0, 0, width, height, 0, 0, resolution.w, resolution.h);
-			const mask = scaledMaskCanvas.toDataURL('image/png');
+			const mask = scaledMaskCanvas.toDataURL("image/png");
 
 			inpaint = {
 				image: image,
-				mask: mask
+				mask: mask,
 			};
 		}
 
@@ -135,7 +133,7 @@
 				delete generations[id];
 				generations = generations;
 				working = false;
-			}
+			},
 		};
 		generations[id] = generation;
 		generations = generations;
@@ -145,9 +143,9 @@
 	function onPointerDown(ev: PointerEvent) {
 		dragging = true;
 		selection = {
-			type: 'start',
+			type: "start",
 			sx: Math.floor(ev.x),
-			sy: Math.floor(ev.y)
+			sy: Math.floor(ev.y),
 		};
 	}
 
@@ -156,11 +154,11 @@
 		if (!selection) return;
 
 		selection = {
-			type: 'progress',
+			type: "progress",
 			sx: selection.sx,
 			sy: selection.sy,
 			ex: Math.floor(ev.x),
-			ey: Math.floor(ev.y)
+			ey: Math.floor(ev.y),
 		};
 	}
 
@@ -182,9 +180,8 @@
 <div
 	class="selection"
 	class:display-none={!active}
-	class:disabled={selection?.type !== 'progress'}
-	class:lowres={selection?.type === 'progress' &&
-		Math.abs(selection.sx - selection.ex) * Math.abs(selection.sy - selection.ey) > 600000}
+	class:disabled={selection?.type !== "progress"}
+	class:lowres={selection?.type === "progress" && Math.abs(selection.sx - selection.ex) * Math.abs(selection.sy - selection.ey) > 600000}
 	bind:this={selectionDiv}
 ></div>
 <div class="action" class:display-none={!active}>
@@ -218,10 +215,8 @@
 		background-color: #ffffff33;
 
 		background-image:
-			linear-gradient(90deg, #454545 50%, transparent 50%),
-			linear-gradient(90deg, #454545 50%, transparent 50%),
-			linear-gradient(0deg, #454545 50%, transparent 50%),
-			linear-gradient(0deg, #454545 50%, transparent 50%);
+			linear-gradient(90deg, #454545 50%, transparent 50%), linear-gradient(90deg, #454545 50%, transparent 50%),
+			linear-gradient(0deg, #454545 50%, transparent 50%), linear-gradient(0deg, #454545 50%, transparent 50%);
 		background-repeat: repeat-x, repeat-x, repeat-y, repeat-y;
 		background-size:
 			15px 2px,
@@ -238,10 +233,8 @@
 
 	.selection.lowres {
 		background-image:
-			linear-gradient(90deg, #a60000 50%, transparent 50%),
-			linear-gradient(90deg, #a60000 50%, transparent 50%),
-			linear-gradient(0deg, #a60000 50%, transparent 50%),
-			linear-gradient(0deg, #a60000 50%, transparent 50%);
+			linear-gradient(90deg, #a60000 50%, transparent 50%), linear-gradient(90deg, #a60000 50%, transparent 50%),
+			linear-gradient(0deg, #a60000 50%, transparent 50%), linear-gradient(0deg, #a60000 50%, transparent 50%);
 	}
 
 	@keyframes border-dance {

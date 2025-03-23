@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { generate, type Performance, type Resolution } from '$lib/fooocus';
-	import { onMount } from 'svelte';
+	import { generate, type Performance, type Resolution } from "$lib/fooocus";
+	import { onMount } from "svelte";
 
 	let {
 		text,
@@ -11,7 +11,7 @@
 		performance,
 		resolution,
 		inpaint,
-		done
+		done,
 	}: {
 		text: string;
 		x: number;
@@ -28,7 +28,7 @@
 	} = $props();
 
 	let img: HTMLImageElement;
-	let src = $state('');
+	let src = $state("");
 
 	onMount(async () => {
 		let lastData: string;
@@ -36,7 +36,7 @@
 			inpaint: inpaint,
 			performance: performance,
 			resolution: resolution,
-			text: text
+			text: text,
 		});
 		for await (const data of datas) {
 			src = data;
@@ -47,14 +47,7 @@
 </script>
 
 <div style="width: {width + 4}px; height: {height + 4}px; left: {x - 2}px; top: {y - 2}px;">
-	<img
-		class:hidden={src === ''}
-		{src}
-		width={resolution.w}
-		height={resolution.h}
-		alt=""
-		bind:this={img}
-	/>
+	<img class:hidden={src === ""} {src} width={resolution.w} height={resolution.h} alt="" bind:this={img} />
 </div>
 
 <style>
@@ -65,14 +58,7 @@
 		background-color: #ffffff33;
 
 		border: 2px solid transparent;
-		border-image: linear-gradient(
-			to bottom right,
-			#b827fc 0%,
-			#2c90fc 25%,
-			#b8fd33 50%,
-			#fec837 75%,
-			#fd1892 100%
-		);
+		border-image: linear-gradient(to bottom right, #b827fc 0%, #2c90fc 25%, #b8fd33 50%, #fec837 75%, #fd1892 100%);
 		border-image-slice: 1;
 		box-sizing: border-box;
 	}

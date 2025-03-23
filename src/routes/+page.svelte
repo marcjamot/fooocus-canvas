@@ -1,50 +1,50 @@
 <script lang="ts">
-	import type { PageAPI, Tool } from '$lib/models';
-	import GenerateAction from '$lib/actions/GenerateAction.svelte';
-	import EraseAction from '$lib/actions/EraseAction.svelte';
-	import PaintAction from '$lib/actions/PaintAction.svelte';
-	import { toolState } from '$lib/states.svelte';
+	import type { PageAPI, Tool } from "$lib/models";
+	import GenerateAction from "$lib/actions/GenerateAction.svelte";
+	import EraseAction from "$lib/actions/EraseAction.svelte";
+	import PaintAction from "$lib/actions/PaintAction.svelte";
+	import { toolState } from "$lib/states.svelte";
 
 	let canvas: HTMLCanvasElement;
 	let history: HTMLCanvasElement[] = [];
 	let future: HTMLCanvasElement[] = [];
-	let lastAction: 'clearRect' | 'drawImage' | 'drawRect' | undefined;
+	let lastAction: "clearRect" | "drawImage" | "drawRect" | undefined;
 	let width: number = $state(0);
 	let height: number = $state(0);
 
 	const pageAPI = {
 		clearRect: (x, y, width, height) => {
-			if (lastAction !== 'clearRect') {
+			if (lastAction !== "clearRect") {
 				saveHistory();
 			}
 
-			lastAction = 'clearRect';
-			const ctx = canvas.getContext('2d')!;
+			lastAction = "clearRect";
+			const ctx = canvas.getContext("2d")!;
 			ctx.clearRect(x, y, width, height);
 		},
 
 		drawImage: (img, x, y, width, height) => {
 			saveHistory();
-			lastAction = 'drawImage';
-			const ctx = canvas.getContext('2d')!;
+			lastAction = "drawImage";
+			const ctx = canvas.getContext("2d")!;
 			ctx.drawImage(img, x, y, width, height);
 		},
 
 		drawRect: (x, y, width, height) => {
-			if (lastAction !== 'drawRect') {
+			if (lastAction !== "drawRect") {
 				saveHistory();
 			}
 
-			lastAction = 'drawRect';
-			const ctx = canvas.getContext('2d')!;
-			ctx.fillStyle = 'black';
+			lastAction = "drawRect";
+			const ctx = canvas.getContext("2d")!;
+			ctx.fillStyle = "black";
 			ctx.fillRect(x, y, width, height);
 		},
 
 		getImageData: (x, y, width, height) => {
-			const ctx = canvas.getContext('2d')!;
+			const ctx = canvas.getContext("2d")!;
 			return ctx.getImageData(x, y, width, height);
-		}
+		},
 	} satisfies PageAPI;
 
 	$effect(() => {
@@ -53,17 +53,17 @@
 				const bmp = await createImageBitmap(canvas);
 				canvas.width = width;
 				canvas.height = height;
-				const ctx = canvas.getContext('2d')!;
+				const ctx = canvas.getContext("2d")!;
 				ctx.drawImage(bmp, 0, 0, width, height);
 			})();
 		}
 	});
 
 	function onKeyDown(event: KeyboardEvent) {
-		if ((event.metaKey || event.ctrlKey) && event.shiftKey && event.key === 'z') {
+		if ((event.metaKey || event.ctrlKey) && event.shiftKey && event.key === "z") {
 			event.preventDefault();
 			restoreFuture();
-		} else if ((event.metaKey || event.ctrlKey) && event.key === 'z') {
+		} else if ((event.metaKey || event.ctrlKey) && event.key === "z") {
 			event.preventDefault();
 			restoreHistory();
 		}
@@ -75,14 +75,14 @@
 
 		lastAction = undefined;
 
-		const historyCanvas = document.createElement('canvas');
+		const historyCanvas = document.createElement("canvas");
 		historyCanvas.width = canvas.width;
 		historyCanvas.height = canvas.height;
-		const historyCtx = historyCanvas.getContext('2d')!;
+		const historyCtx = historyCanvas.getContext("2d")!;
 		historyCtx.drawImage(canvas, 0, 0);
 		history.push(historyCanvas);
 
-		const ctx = canvas.getContext('2d')!;
+		const ctx = canvas.getContext("2d")!;
 		ctx.clearRect(0, 0, canvas.width, canvas.height);
 		ctx.drawImage(futureCanvas, 0, 0);
 	}
@@ -93,14 +93,14 @@
 
 		lastAction = undefined;
 
-		const futureCanvas = document.createElement('canvas');
+		const futureCanvas = document.createElement("canvas");
 		futureCanvas.width = canvas.width;
 		futureCanvas.height = canvas.height;
-		const futureCtx = futureCanvas.getContext('2d')!;
+		const futureCtx = futureCanvas.getContext("2d")!;
 		futureCtx.drawImage(canvas, 0, 0);
 		future.unshift(futureCanvas);
 
-		const ctx = canvas.getContext('2d')!;
+		const ctx = canvas.getContext("2d")!;
 		ctx.clearRect(0, 0, canvas.width, canvas.height);
 		ctx.drawImage(historyCanvas, 0, 0);
 	}
@@ -108,10 +108,10 @@
 	function saveHistory() {
 		future = [];
 
-		const historyCanvas = document.createElement('canvas');
+		const historyCanvas = document.createElement("canvas");
 		historyCanvas.width = canvas.width;
 		historyCanvas.height = canvas.height;
-		const historyCtx = historyCanvas.getContext('2d')!;
+		const historyCtx = historyCanvas.getContext("2d")!;
 		historyCtx.drawImage(canvas, 0, 0);
 		history.push(historyCanvas);
 

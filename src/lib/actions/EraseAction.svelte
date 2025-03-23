@@ -1,11 +1,11 @@
 <script lang="ts">
-	import type { PageAPI } from '$lib/models';
-	import { onMount } from 'svelte';
-	import { toolState } from '$lib/states.svelte';
+	import type { PageAPI } from "$lib/models";
+	import { onMount } from "svelte";
+	import { toolState } from "$lib/states.svelte";
 
 	const { pageAPI }: { pageAPI: PageAPI } = $props();
 
-	const NAME = 'Erase';
+	const NAME = "Erase";
 
 	let active = $derived(toolState.active === NAME);
 	let dragging = $state(false);
@@ -17,9 +17,9 @@
 		toolState.tools = [
 			...toolState.tools,
 			{
-				icon: '/icons/erase.svg',
-				name: NAME
-			}
+				icon: "/icons/erase.svg",
+				name: NAME,
+			},
 		];
 	});
 

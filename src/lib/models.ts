@@ -7,12 +7,12 @@ export interface PageAPI {
 
 export type Selection =
 	| {
-			type: 'start';
+			type: "start";
 			sx: number;
 			sy: number;
 	  }
 	| {
-			type: 'progress';
+			type: "progress";
 			sx: number;
 			sy: number;
 			ex: number;

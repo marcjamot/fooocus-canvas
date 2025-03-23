@@ -1,6 +1,6 @@
-import { Client } from '@gradio/client';
+import { Client } from "@gradio/client";
 
-export const PerformanceValues = ['Extreme Speed', 'Speed', 'Quality'] as const;
+export const PerformanceValues = ["Extreme Speed", "Speed", "Quality"] as const;
 export type Performance = (typeof PerformanceValues)[number];
 
 export interface Resolution {
@@ -37,7 +37,7 @@ const RESOLUTIONS: Resolution[] = [
 	{ w: 1536, h: 640, aW: 12, aH: 5, aspect: 12 / 5 },
 	{ w: 1600, h: 640, aW: 5, aH: 2, aspect: 5 / 2 },
 	{ w: 1664, h: 576, aW: 26, aH: 9, aspect: 26 / 9 },
-	{ w: 1728, h: 576, aW: 3, aH: 1, aspect: 3 / 1 }
+	{ w: 1728, h: 576, aW: 3, aH: 1, aspect: 3 / 1 },
 ] as const;
 
 export function bestResolution(width: number, height: number): Resolution {
@@ -66,54 +66,48 @@ export async function* generate(args: {
 	text: string;
 }): AsyncIterable<string> {
 	const resolutionString = `${args.resolution.w}×${args.resolution.h} <span style="color: grey;"> ∣ ${args.resolution.aW}:${args.resolution.aH}</span>`;
-	const styles = [
-		'Fooocus V2',
-		'Fooocus Enhance',
-		'Fooocus Sharp',
-		'Fooocus Semi Realistic',
-		'SAI Anime'
-	];
+	const styles = ["Fooocus V2", "Fooocus Enhance", "Fooocus Sharp", "Fooocus Semi Realistic", "SAI Anime"];
 
-	const fooocus = await Client.connect('http://localhost:5173/fooocus');
+	const fooocus = await Client.connect("http://localhost:5173/fooocus");
 
 	const r67 = await fooocus.predict(67, [
 		false,
 		args.text,
-		'',
+		"",
 		styles,
 		args.performance,
 		resolutionString,
 		1,
-		'png',
+		"png",
 		`${Math.floor(Math.random() * (1024 * 1024 * 1024 - 1))}`,
 		false,
 		2,
 		4,
-		'juggernautXL_v8Rundiffusion.safetensors',
-		'None',
+		"juggernautXL_v8Rundiffusion.safetensors",
+		"None",
 		0.5,
 		true,
-		'sd_xl_offset_example-lora_1.0.safetensors',
+		"sd_xl_offset_example-lora_1.0.safetensors",
 		0.1,
 		true,
-		'None',
+		"None",
 		1,
 		true,
-		'None',
+		"None",
 		1,
 		true,
-		'None',
+		"None",
 		1,
 		true,
-		'None',
+		"None",
 		1,
 		true,
-		'inpaint',
-		'Disabled',
+		"inpaint",
+		"Disabled",
 		null,
 		[],
 		args.inpaint,
-		'',
+		"",
 		null,
 		false,
 		false,
@@ -124,9 +118,9 @@ export async function* generate(args: {
 		0.3,
 		7,
 		2,
-		'dpmpp_2m_sde_gpu',
-		'karras',
-		'Default (model)',
+		"dpmpp_2m_sde_gpu",
+		"karras",
+		"Default (model)",
 		-1,
 		-1,
 		-1,
@@ -139,7 +133,7 @@ export async function* generate(args: {
 		false,
 		64,
 		128,
-		'joint',
+		"joint",
 		0.25,
 		false,
 		1.01,
@@ -148,86 +142,86 @@ export async function* generate(args: {
 		0.95,
 		false,
 		false,
-		'v2.6',
+		"v2.6",
 		1,
 		0.618,
 		false,
 		false,
 		0,
 		false,
-		'fooocus',
+		"fooocus",
 		null,
 		0.5,
 		0.6,
-		'ImagePrompt',
+		"ImagePrompt",
 		null,
 		0.5,
 		0.6,
-		'ImagePrompt',
+		"ImagePrompt",
 		null,
 		0.5,
 		0.6,
-		'ImagePrompt',
+		"ImagePrompt",
 		null,
 		0.5,
 		0.6,
-		'ImagePrompt',
+		"ImagePrompt",
 		false,
 		0,
 		false,
 		null,
 		false,
-		'Disabled',
-		'Before First Enhancement',
-		'Original Prompts',
+		"Disabled",
+		"Before First Enhancement",
+		"Original Prompts",
 		false,
-		'',
-		'',
-		'',
-		'sam',
-		'full',
-		'vit_b',
+		"",
+		"",
+		"",
+		"sam",
+		"full",
+		"vit_b",
 		0.25,
 		0.3,
 		0,
 		false,
-		'v2.6',
+		"v2.6",
 		1,
 		0.618,
 		0,
 		false,
 		false,
-		'',
-		'',
-		'',
-		'sam',
-		'full',
-		'vit_b',
+		"",
+		"",
+		"",
+		"sam",
+		"full",
+		"vit_b",
 		0.25,
 		0.3,
 		0,
 		false,
-		'v2.6',
+		"v2.6",
 		1,
 		0.618,
 		0,
 		false,
 		false,
-		'',
-		'',
-		'',
-		'sam',
-		'full',
-		'vit_b',
+		"",
+		"",
+		"",
+		"sam",
+		"full",
+		"vit_b",
 		0.25,
 		0.3,
 		0,
 		false,
-		'v2.6',
+		"v2.6",
 		1,
 		0.618,
 		0,
-		false
+		false,
 	]);
 
 	// console.log('Result 67:', r67);
@@ -237,14 +231,9 @@ export async function* generate(args: {
 	let i = Math.random() * 1000000;
 	for await (const message of r68) {
 		i += 1;
-		if (message.type !== 'data') continue;
+		if (message.type !== "data") continue;
 
-		const data = message.data as [
-			{},
-			{ visible?: boolean; value: string },
-			{},
-			{ visible?: boolean; value: [{ name: string }] }
-		];
+		const data = message.data as [{}, { visible?: boolean; value: string }, {}, { visible?: boolean; value: [{ name: string }] }];
 
 		if (data[1].visible && data[1].value) {
 			yield data[1].value;
@@ -253,9 +242,7 @@ export async function* generate(args: {
 			const res = await fetch(`http://localhost:5173/fooocus/file=${data[3].value[0].name}`);
 			const arrayBuffer = await res.arrayBuffer();
 			const bytes = new Uint8Array(arrayBuffer);
-			const b64data =
-				'data:image/png;base64,' +
-				btoa(bytes.reduce((data, byte) => data + String.fromCharCode(byte), ''));
+			const b64data = "data:image/png;base64," + btoa(bytes.reduce((data, byte) => data + String.fromCharCode(byte), ""));
 			yield b64data;
 			break;
 		}
