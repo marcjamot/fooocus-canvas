@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { CanvasAPI, Tool } from "$lib/models";
+	import type { Tool } from "$lib/models";
 	import EraseFeature from "$lib/features/EraseFeature.svelte";
 	import GenerateFeature from "$lib/features/GenerateFeature.svelte";
 	import PaintFeature from "$lib/features/PaintFeature.svelte";

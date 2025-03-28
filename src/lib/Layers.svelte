@@ -2,11 +2,14 @@
 	import { mount, onDestroy, onMount, unmount } from "svelte";
 	import Canvas from "./Canvas.svelte";
 	import type { CanvasAPI } from "./models";
+	import DragList, { type SnippetProps } from "./DragList.svelte";
 
 	let canvases: Canvas[] = [];
+	let canvasesData = $state<{ name: string }[]>([]);
 	let canvasesDiv: HTMLDivElement;
-	let count = $state(0);
+	let increment = 0;
 	let index = $state(0);
+	let transparency = $state(false);
 
 	onMount(() => {
 		addLayer();
@@ -16,6 +19,16 @@
 		canvases = [];
 	});
 
+	$effect(() => {
+		for (let i = 0; i < canvasesDiv.children.length; i += 1) {
+			const child = canvasesDiv.children[i];
+			child.classList.remove("transparent");
+			if (transparency && index !== i) {
+				child.classList.add("transparent");
+			}
+		}
+	});
+
 	export function activeCanvas(): CanvasAPI {
 		return canvases[index];
 	}
@@ -23,35 +36,21 @@
 	function addLayer() {
 		const canvas = mount(Canvas, { target: canvasesDiv });
 		canvases.push(canvas);
-		count += 1;
+		canvasesData.push({ name: `${increment++}` });
+		index = canvases.length - 1;
 	}
 
-	function destroyLayer() {
-		const removed = canvases.splice(index, 1);
+	function destroyLayer(position: number) {
+		const removed = canvases.splice(position, 1);
+		canvasesData.splice(position, 1);
 		unmount(removed[0]);
-		count -= 1;
-		if (count === 0) addLayer();
-		if (index === count) index -= 1;
+		if (canvases.length === 0) addLayer();
+		if (index === canvases.length) index -= 1;
 	}
 
-	function duplicateLayer() {
-		const currentCanvas = canvases[index];
-		const currentData = currentCanvas.getImageData(0, 0);
-
-		const canvas = mount(Canvas, { target: canvasesDiv });
-		setTimeout(() => {
-			canvas.putImageData(currentData, 0, 0);
-		}, 1);
-		canvases.push(canvas);
-		count += 1;
-	}
-
-	function mergeLayer() {
-		if (canvases.length === 1) return;
-		if (index === 0) return;
-
-		const cU = canvases[index];
-		const cL = canvases[index - 1];
+	function mergeLayer(sourcePosition: number, targetPosition: number) {
+		const cU = canvases[sourcePosition];
+		const cL = canvases[targetPosition];
 
 		const dU = cU.getImageData(0, 0);
 		const dL = cL.getImageData(0, 0);
@@ -67,7 +66,27 @@
 		}
 
 		cL.putImageData(dM, 0, 0);
-		destroyLayer();
+		destroyLayer(sourcePosition);
+	}
+
+	function moveLayer(oldPosition: number, newPosition: number) {
+		if (oldPosition === newPosition) return;
+		let currentIndex = index;
+		if (currentIndex === oldPosition) {
+			currentIndex = newPosition;
+		} else if (oldPosition < currentIndex && newPosition >= currentIndex) {
+			currentIndex -= 1;
+		} else if (oldPosition > currentIndex && newPosition <= currentIndex) {
+			currentIndex += 1;
+		}
+
+		const f = oldPosition < newPosition ? moveLayerUp : moveLayerDown;
+
+		index = oldPosition;
+		for (let i = 0; i < Math.abs(newPosition - oldPosition); i += 1) {
+			f();
+		}
+		index = currentIndex;
 	}
 
 	function moveLayerDown() {
@@ -82,6 +101,8 @@
 
 		currentCanvas.putImageData(lowerData, 0, 0);
 		lowerCanvas.putImageData(currentData, 0, 0);
+
+		[canvasesData[index], canvasesData[index - 1]] = [canvasesData[index - 1], canvasesData[index]];
 
 		index = index - 1;
 	}
@@ -99,117 +120,47 @@
 		currentCanvas.putImageData(upperData, 0, 0);
 		upperCanvas.putImageData(currentData, 0, 0);
 
+		[canvasesData[index], canvasesData[index + 1]] = [canvasesData[index + 1], canvasesData[index]];
+
 		index = index + 1;
+	}
+
+	function selectLayer(i: number) {
+		if (index === i) {
+			transparency = !transparency;
+		}
+
+		index = i;
 	}
 </script>
 
 <div class="canvases" bind:this={canvasesDiv}></div>
-<div class="layer-actions">
-	<div
-		class="layer-action"
-		onclick={duplicateLayer}
-		onkeydown={(e) => {
-			if (e.key === "Enter") duplicateLayer();
-		}}
-		role="button"
-		tabindex="0"
-	>
-		<div class="icon">
-			{"D"}
-			<img src={"/icons/brush.svg"} alt={"tool.name"} />
-		</div>
-	</div>
-	<div
-		class="layer-action"
-		onclick={addLayer}
-		onkeydown={(e) => {
-			if (e.key === "Enter") addLayer();
-		}}
-		role="button"
-		tabindex="0"
-	>
-		<div class="icon">
-			{"+"}
-			<img src={"/icons/brush.svg"} alt={"tool.name"} />
-		</div>
-	</div>
-	<div
-		class="layer-action"
-		onclick={destroyLayer}
-		onkeydown={(e) => {
-			if (e.key === "Enter") destroyLayer();
-		}}
-		role="button"
-		tabindex="0"
-	>
-		<div class="icon">
-			{"-"}
-			<img src={"/icons/brush.svg"} alt={"tool.name"} />
-		</div>
-	</div>
-	<div
-		class="layer-action"
-		onclick={mergeLayer}
-		onkeydown={(e) => {
-			if (e.key === "Enter") mergeLayer();
-		}}
-		role="button"
-		tabindex="0"
-	>
-		<div class="icon">
-			{"M"}
-			<img src={"/icons/brush.svg"} alt={"tool.name"} />
-		</div>
-	</div>
-	<div
-		class="layer-action"
-		onclick={moveLayerUp}
-		onkeydown={(e) => {
-			if (e.key === "Enter") moveLayerUp();
-		}}
-		role="button"
-		tabindex="0"
-	>
-		<div class="icon">
-			{"^"}
-			<img src={"/icons/brush.svg"} alt={"tool.name"} />
-		</div>
-	</div>
-	<div
-		class="layer-action"
-		onclick={moveLayerDown}
-		onkeydown={(e) => {
-			if (e.key === "Enter") moveLayerDown();
-		}}
-		role="button"
-		tabindex="0"
-	>
-		<div class="icon">
-			{"v"}
-			<img src={"/icons/brush.svg"} alt={"tool.name"} />
-		</div>
-	</div>
-</div>
 <div class="layers">
-	{#each Array(count) as _n, i}
-		<div
-			class="layer"
-			onclick={() => (index = i)}
-			onkeydown={(e) => {
-				if (e.key === "Enter") {
-					index = i;
-				}
-			}}
-			role="button"
-			tabindex="0"
-			class:active={i === index}
-		>
-			<div class="icon">
-				{i}
-				<img src={"/icons/brush.svg"} alt={"tool.name"} />
+	{#snippet snippet(props: SnippetProps<{ name: string }>)}
+		{#if props.item.name === "add"}
+			<div class="layer" class:target={props.isTarget} onclick={addLayer}>
+				<span>{props.anyDragging ? "-" : "+"}</span>
 			</div>
-		</div>
-	{/each}
+		{:else}
+			<div class="layer" class:active={index === props.position} class:target={props.isTarget} onclick={() => selectLayer(props.position)}>
+				<span>{props.item.name}</span>
+			</div>
+		{/if}
+	{/snippet}
+	<DragList
+		items={[...canvasesData.map((d) => ({ draggable: true, name: d.name })), { draggable: false, name: "add" }]}
+		{snippet}
+		ondrop={(_sourceItem, sourcePosition, targetItem, targetPosition) => {
+			if (targetItem.name === "add") {
+				destroyLayer(sourcePosition);
+			} else {
+				mergeLayer(sourcePosition, targetPosition);
+			}
+		}}
+		onmove={(_sourceItem, oldPosition, newPosition) => {
+			moveLayer(oldPosition, newPosition);
+		}}
+	/>
 </div>
 
 <style>
@@ -219,39 +170,17 @@
 		height: 100%;
 	}
 
-	.layer-actions {
-		position: absolute;
-		bottom: 8px;
-		right: 68px;
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		gap: 8px;
-	}
-
-	.layer-action {
-		z-index: 1;
-		padding: 8px;
-		border: 1px solid black;
-		border-radius: 8px;
-		background-color: white;
-		box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
-		cursor: pointer;
-	}
-
 	.layers {
+		z-index: 1;
 		position: absolute;
 		bottom: 8px;
-		right: 8px;
 		display: flex;
-		flex-direction: column-reverse;
-		align-items: center;
-		gap: 8px;
 	}
 
 	.layer {
-		z-index: 1;
-		padding: 8px;
+		position: relative;
+		margin-left: 8px;
+		padding: 8px 24px;
 		border: 1px solid black;
 		border-radius: 8px;
 		background-color: white;
@@ -265,8 +194,7 @@
 		color: white;
 	}
 
-	.icon {
-		width: 2rem;
-		height: 2rem;
+	.layer.target {
+		background-color: #de2424;
 	}
 </style>
